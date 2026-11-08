@@ -2,9 +2,9 @@ import 'dart:async';
 import 'dart:convert';
 import 'dart:io';
 
-import '../utils/aes_crypto.dart';
-import '../utils/form_builder.dart';
-import '../utils/html_parser.dart';
+import '../common/aes_crypto.dart';
+import '../common/form_builder.dart';
+import '../common/html_parser.dart';
 
 /// 认证结果
 class LoginResult {
@@ -195,9 +195,7 @@ class AuthService {
           );
         }
         final duration = await _fetchOnlineDuration(userAgent);
-        final message = duration != null
-            ? '认证成功，当前在线时长 $duration'
-            : '认证成功';
+        final message = duration != null ? '认证成功，当前在线时长 $duration' : '认证成功';
         return LoginResult(
           success: true,
           message: message,
@@ -501,7 +499,7 @@ class AuthService {
       }
     }
     if (firstPage != null) return firstPage;
-    if (lastError != null) throw lastError;
+    if (lastError case final Exception exception) throw exception;
     throw const SocketException('无法连接认证服务器');
   }
 
@@ -639,7 +637,6 @@ class AuthService {
         r'type\s*=\s*["\x27]?password',
         caseSensitive: false,
       ).hasMatch(html);
-
 }
 
 /// 在线复核结果（仅本文件内部使用）。

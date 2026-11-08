@@ -36,21 +36,25 @@ void main() {
         } else if (path == '/gportal/Web/loginAction') {
           loginAttempts++;
           if (loginAttempts == 1) {
-            req.response.write(jsonEncode(<String, dynamic>{
-              'status': 0,
-              'info': '系统检测到您当前可更换上网设备次数仅剩19次,是否重新绑定至当前设备？请慎重点击确认！',
-              'data': <String, dynamic>{
-                'resultCode': '124',
-                'resultData': '/gportal/Web/rebindAction',
-              },
-            }));
+            req.response.write(
+              jsonEncode(<String, dynamic>{
+                'status': 0,
+                'info': '系统检测到您当前可更换上网设备次数仅剩19次,是否重新绑定至当前设备？请慎重点击确认！',
+                'data': <String, dynamic>{
+                  'resultCode': '124',
+                  'resultData': '/gportal/Web/rebindAction',
+                },
+              }),
+            );
           } else {
             online = true;
-            req.response.write(jsonEncode(<String, dynamic>{
-              'status': 1,
-              'info': '认证成功',
-              'data': <String, dynamic>{},
-            }));
+            req.response.write(
+              jsonEncode(<String, dynamic>{
+                'status': 1,
+                'info': '认证成功',
+                'data': <String, dynamic>{},
+              }),
+            );
           }
         } else if (path == '/gportal/Web/rebindAction') {
           rebindPosts++;
@@ -120,14 +124,16 @@ void main() {
 </body></html>
 ''');
         } else if (path == '/gportal/Web/loginAction') {
-          req.response.write(jsonEncode(<String, dynamic>{
-            'status': 0,
-            'info': '系统检测到您当前可更换上网设备次数仅剩19次,是否重新绑定至当前设备？',
-            'data': <String, dynamic>{
-              'resultCode': '124',
-              'resultData': '/gportal/Web/rebindAction',
-            },
-          }));
+          req.response.write(
+            jsonEncode(<String, dynamic>{
+              'status': 0,
+              'info': '系统检测到您当前可更换上网设备次数仅剩19次,是否重新绑定至当前设备？',
+              'data': <String, dynamic>{
+                'resultCode': '124',
+                'resultData': '/gportal/Web/rebindAction',
+              },
+            }),
+          );
         } else if (path == '/gportal/Web/rebindAction') {
           rebindPosts++;
           req.response.write('ok');

@@ -7,7 +7,7 @@ import 'package:url_launcher/url_launcher.dart';
 import '../models/device_profile.dart';
 import '../services/auth_service.dart';
 import '../services/settings_service.dart';
-import '../theme.dart';
+import '../ui/theme.dart';
 
 /// 项目仓库地址（右上角入口按钮跳转）。
 const String kRepoUrl = 'https://github.com/Eternite-0/LNU_Giwifi_HG';
@@ -754,8 +754,11 @@ class _HomePageState extends State<HomePage> {
           collapsedIconColor: scheme.onSurfaceVariant,
           title: Row(
             children: [
-              Icon(Icons.tune_rounded,
-                  size: 20, color: scheme.onSurfaceVariant),
+              Icon(
+                Icons.tune_rounded,
+                size: 20,
+                color: scheme.onSurfaceVariant,
+              ),
               const SizedBox(width: 8),
               const Text(
                 '高级设置',

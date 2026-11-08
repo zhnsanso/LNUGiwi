@@ -1,7 +1,7 @@
 import 'package:flutter_test/flutter_test.dart';
 
-import 'package:giwifi_ua_switcher/utils/form_builder.dart';
-import 'package:giwifi_ua_switcher/utils/html_parser.dart';
+import 'package:giwifi_ua_switcher/common/form_builder.dart';
+import 'package:giwifi_ua_switcher/common/html_parser.dart';
 
 void main() {
   const html = '''

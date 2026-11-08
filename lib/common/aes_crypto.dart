@@ -57,7 +57,7 @@ class Aes128 {
     if (input.length != 16) {
       throw ArgumentError('块长度必须为 16 字节');
     }
-    var state = Uint8List.fromList(input);
+    final state = Uint8List.fromList(input);
 
     _addRoundKey(state, _roundKeys[0]);
     for (var round = 1; round <= 9; round++) {

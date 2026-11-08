@@ -6,7 +6,7 @@ import 'package:flutter_test/flutter_test.dart';
 
 import 'package:giwifi_ua_switcher/pages/home_page.dart';
 import 'package:giwifi_ua_switcher/services/settings_service.dart';
-import 'package:giwifi_ua_switcher/theme.dart';
+import 'package:giwifi_ua_switcher/ui/theme.dart';
 
 /// 加载子集化的真实字体（Noto Sans SC + MaterialIcons），
 /// 保证金色截图里中文与图标按真实样式渲染。

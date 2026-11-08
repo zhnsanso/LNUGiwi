@@ -1,7 +1,7 @@
 import 'package:flutter_test/flutter_test.dart';
 
-import 'package:giwifi_ua_switcher/utils/aes_crypto.dart';
-import 'package:giwifi_ua_switcher/utils/form_builder.dart';
+import 'package:giwifi_ua_switcher/common/aes_crypto.dart';
+import 'package:giwifi_ua_switcher/common/form_builder.dart';
 
 void main() {
   // sign 值来自真实门户页捕获（giwifi_page.html），

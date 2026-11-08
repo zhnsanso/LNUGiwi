@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 
 import 'pages/home_page.dart';
-import 'theme.dart';
+import 'ui/theme.dart';
 
 void main() {
   runApp(const GiWiFiApp());

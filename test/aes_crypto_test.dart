@@ -2,7 +2,7 @@ import 'dart:convert';
 
 import 'package:flutter_test/flutter_test.dart';
 
-import 'package:giwifi_ua_switcher/utils/aes_crypto.dart';
+import 'package:giwifi_ua_switcher/common/aes_crypto.dart';
 
 void main() {
   const key = '1234567887654321';

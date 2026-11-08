@@ -47,11 +47,13 @@ void main() {
         } else if (path == '/gportal/Web/loginAction') {
           loginPosts++;
           authenticated = true;
-          req.response.write(jsonEncode(<String, dynamic>{
-            'status': 1,
-            'info': '认证成功',
-            'data': <String, dynamic>{},
-          }));
+          req.response.write(
+            jsonEncode(<String, dynamic>{
+              'status': 1,
+              'info': '认证成功',
+              'data': <String, dynamic>{},
+            }),
+          );
         } else if (path == '/gportal/web/logout') {
           final start = DateTime.now().millisecondsSinceEpoch ~/ 1000;
           if (authenticated) {
@@ -131,11 +133,13 @@ void main() {
         } else if (path == '/gportal/Web/loginAction') {
           loginPosts++;
           online = true;
-          req.response.write(jsonEncode(<String, dynamic>{
-            'status': 1,
-            'info': '认证成功',
-            'data': <String, dynamic>{},
-          }));
+          req.response.write(
+            jsonEncode(<String, dynamic>{
+              'status': 1,
+              'info': '认证成功',
+              'data': <String, dynamic>{},
+            }),
+          );
         } else {
           req.response.statusCode = 404;
         }
@@ -219,11 +223,13 @@ void main() {
           req.response.write(_formPage());
         } else if (path == '/gportal/Web/loginAction') {
           // 模拟异常：status=1 但实际未放行
-          req.response.write(jsonEncode(<String, dynamic>{
-            'status': 1,
-            'info': '认证成功',
-            'data': <String, dynamic>{},
-          }));
+          req.response.write(
+            jsonEncode(<String, dynamic>{
+              'status': 1,
+              'info': '认证成功',
+              'data': <String, dynamic>{},
+            }),
+          );
         } else if (path == '/gportal/web/logout') {
           // 复核时仍是登录表单 → 判定未上线
           req.response.headers.contentType = ContentType.html;
@@ -269,11 +275,13 @@ void main() {
           );
         } else if (path == '/gportal/Web/loginAction') {
           loginPosts++;
-          req.response.write(jsonEncode(<String, dynamic>{
-            'status': 1,
-            'info': '认证中',
-            'data': <String, dynamic>{},
-          }));
+          req.response.write(
+            jsonEncode(<String, dynamic>{
+              'status': 1,
+              'info': '认证中',
+              'data': <String, dynamic>{},
+            }),
+          );
         } else {
           req.response.statusCode = 404;
         }
@@ -311,11 +319,13 @@ void main() {
           req.response.write(_formPage());
         } else if (path == '/gportal/Web/loginAction') {
           loginPosts++;
-          req.response.write(jsonEncode(<String, dynamic>{
-            'status': 1,
-            'info': '认证中，请勿关闭当前页面！',
-            'data': <String, dynamic>{},
-          }));
+          req.response.write(
+            jsonEncode(<String, dynamic>{
+              'status': 1,
+              'info': '认证中，请勿关闭当前页面！',
+              'data': <String, dynamic>{},
+            }),
+          );
         } else if (path == '/gportal/web/logout') {
           logoutGets++;
           final start = DateTime.now().millisecondsSinceEpoch ~/ 1000;

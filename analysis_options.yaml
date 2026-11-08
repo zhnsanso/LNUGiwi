@@ -1,6 +1,10 @@
+include: lint_options.yaml
+
 analyzer:
   exclude:
     - tool/**
-linter:
-  rules:
-    - prefer_const_constructors
+    - build/**
+    - android/**
+    - ios/**
+    - windows/**
+    - macos/**

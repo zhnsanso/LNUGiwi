@@ -5,9 +5,9 @@ import 'dart:io';
 import 'dart:typed_data';
 
 import '../lib/services/settings_service.dart';
-import '../lib/utils/aes_crypto.dart';
-import '../lib/utils/form_builder.dart';
-import '../lib/utils/html_parser.dart';
+import '../lib/common/aes_crypto.dart';
+import '../lib/common/form_builder.dart';
+import '../lib/common/html_parser.dart';
 
 int _failures = 0;
 
