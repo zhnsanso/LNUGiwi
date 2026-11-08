@@ -2,9 +2,11 @@
 
 本项目的显著变更记录。遵循 [Conventional Commits](https://www.conventionalcommits.org/zh-hans/) 提交规范，发布时手动汇总至此。
 
-## Unreleased
+## v2.0.2 (2026-11-08)
 
-### 风格设计（v2.0.2，学习 prism_ui）
+重构完成后的首个正式发布：单一 Flutter 实现 + FlClash 式工程体系 + 设计令牌。发布产物见 GitHub Release（Android APK / macOS dmg+zip / Windows zip，附 SHA256SUMS）。
+
+### 风格设计（学习 prism_ui）
 
 - **ui**: 设计令牌层——`lib/ui/shape.dart`（`AppRadius`/`AppShape`，全超椭圆圆角）与 `lib/ui/typography.dart`（`AppTextStyle` 字号阶梯）
 - **ui**: 全面替换为超椭圆圆角（`RoundedSuperellipseBorder` / `ClipRSuperellipse`，胶囊亦为超椭圆全半径）
