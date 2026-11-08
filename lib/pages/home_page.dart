@@ -2,15 +2,13 @@ import 'dart:async';
 import 'dart:io';
 
 import 'package:flutter/material.dart';
-import 'package:url_launcher/url_launcher.dart';
 
 import '../models/device_profile.dart';
 import '../services/auth_service.dart';
 import '../services/settings_service.dart';
+import '../ui/shape.dart';
 import '../ui/theme.dart';
-
-/// 项目仓库地址（右上角入口按钮跳转）。
-const String kRepoUrl = 'https://github.com/Eternite-0/LNU_Giwifi_HG';
+import '../ui/typography.dart';
 
 class HomePage extends StatefulWidget {
   const HomePage({super.key});
@@ -219,7 +217,7 @@ class _HomePageState extends State<HomePage> {
           title: const Text('确认更换绑定设备'),
           content: Text(
             info,
-            style: const TextStyle(fontSize: 13.5, height: 1.5),
+            style: AppTextStyle.calloutNormal,
           ),
           actionsPadding: const EdgeInsets.fromLTRB(20, 0, 20, 16),
           actions: [
@@ -253,7 +251,7 @@ class _HomePageState extends State<HomePage> {
           content: const Text(
             '要继续切换设备吗？将先注销当前在线设备，'
             '再按所选设备类型重新认证（会校验账号密码）。',
-            style: TextStyle(fontSize: 13.5, height: 1.5),
+            style: AppTextStyle.calloutNormal,
           ),
           actionsPadding: const EdgeInsets.fromLTRB(20, 0, 20, 16),
           actions: [
@@ -412,9 +410,9 @@ class _HomePageState extends State<HomePage> {
     };
     return Container(
       width: double.infinity,
-      decoration: const BoxDecoration(
+      decoration: const ShapeDecoration(
         gradient: kBrandGradient,
-        borderRadius: BorderRadius.vertical(bottom: Radius.circular(28)),
+        shape: AppShape.header,
       ),
       padding: const EdgeInsets.fromLTRB(24, 20, 24, 26),
       child: Row(
@@ -422,30 +420,22 @@ class _HomePageState extends State<HomePage> {
           Container(
             width: 48,
             height: 48,
-            decoration: BoxDecoration(
+            decoration: ShapeDecoration(
               color: kBrandInk.withValues(alpha: .14),
-              borderRadius: BorderRadius.circular(14),
+              shape: AppShape.md,
             ),
             child: const Icon(Icons.wifi_rounded, color: kBrandInk, size: 26),
           ),
           const SizedBox(width: 14),
-          const Expanded(
+          Expanded(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text(
-                  'GiWiFi 一键认证',
-                  style: TextStyle(
-                    color: kBrandInk,
-                    fontSize: 20,
-                    fontWeight: FontWeight.w700,
-                    letterSpacing: .2,
-                  ),
-                ),
-                SizedBox(height: 3),
+                const Text('GiWiFi 一键认证', style: AppTextStyle.titleXL),
+                const SizedBox(height: 3),
                 Text(
                   '校园网终端 · 一键切换 · 极速认证',
-                  style: TextStyle(color: kBrandInkSoft, fontSize: 12.5),
+                  style: AppTextStyle.footnote.copyWith(color: kBrandInkSoft),
                 ),
               ],
             ),
@@ -453,9 +443,9 @@ class _HomePageState extends State<HomePage> {
           const SizedBox(width: 12),
           Container(
             padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
-            decoration: BoxDecoration(
+            decoration: ShapeDecoration(
               color: kBrandInk.withValues(alpha: .14),
-              borderRadius: BorderRadius.circular(999),
+              shape: AppShape.pill,
             ),
             child: Row(
               mainAxisSize: MainAxisSize.min,
@@ -471,51 +461,14 @@ class _HomePageState extends State<HomePage> {
                 const SizedBox(width: 6),
                 Text(
                   label,
-                  style: const TextStyle(
-                    color: kBrandInk,
-                    fontSize: 12.5,
-                    fontWeight: FontWeight.w600,
-                  ),
+                  style: AppTextStyle.footnoteEmphasized,
                 ),
               ],
             ),
           ),
-          const SizedBox(width: 10),
-          _buildRepoButton(),
         ],
       ),
     );
-  }
-
-  /// 右上角仓库入口：点击用系统浏览器打开 GitHub 仓库。
-  Widget _buildRepoButton() {
-    return Tooltip(
-      message: '打开 GitHub 仓库',
-      child: Material(
-        color: kBrandInk.withValues(alpha: .14),
-        borderRadius: BorderRadius.circular(999),
-        child: InkWell(
-          borderRadius: BorderRadius.circular(999),
-          onTap: _openRepo,
-          child: const Padding(
-            padding: EdgeInsets.all(7),
-            child: Icon(Icons.code_rounded, color: kBrandInk, size: 20),
-          ),
-        ),
-      ),
-    );
-  }
-
-  Future<void> _openRepo() async {
-    try {
-      final opened = await launchUrl(
-        Uri.parse(kRepoUrl),
-        mode: LaunchMode.externalApplication,
-      );
-      if (!opened) _showSnack('未能打开浏览器，仓库地址：$kRepoUrl');
-    } catch (_) {
-      _showSnack('未能打开浏览器，仓库地址：$kRepoUrl');
-    }
   }
 
   Widget _buildSectionTitle(IconData icon, String title, String subtitle) {
@@ -525,9 +478,9 @@ class _HomePageState extends State<HomePage> {
         Container(
           width: 36,
           height: 36,
-          decoration: BoxDecoration(
+          decoration: ShapeDecoration(
             color: scheme.primary.withValues(alpha: .10),
-            borderRadius: BorderRadius.circular(10),
+            shape: AppShape.sm,
           ),
           child: Icon(icon, size: 19, color: scheme.primary),
         ),
@@ -535,14 +488,13 @@ class _HomePageState extends State<HomePage> {
         Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Text(
-              title,
-              style: const TextStyle(fontSize: 15, fontWeight: FontWeight.w700),
-            ),
+            Text(title, style: AppTextStyle.title),
             const SizedBox(height: 1),
             Text(
               subtitle,
-              style: TextStyle(fontSize: 11.5, color: scheme.onSurfaceVariant),
+              style: AppTextStyle.caption.copyWith(
+                color: scheme.onSurfaceVariant,
+              ),
             ),
           ],
         ),
@@ -593,21 +545,23 @@ class _HomePageState extends State<HomePage> {
             ? scheme.primary
             : scheme.surfaceContainerHighest.withValues(alpha: .45),
         animationDuration: const Duration(milliseconds: 160),
-        borderRadius: BorderRadius.circular(14),
+        shape: AppShape.md,
         child: InkWell(
-          borderRadius: BorderRadius.circular(14),
+          customBorder: AppShape.md,
           onTap: () => setState(() => _profileId = profile.id),
           child: AnimatedContainer(
             duration: const Duration(milliseconds: 160),
             height: 86,
             padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 12),
-            decoration: BoxDecoration(
-              borderRadius: BorderRadius.circular(14),
-              border: Border.all(
-                color: selected
-                    ? scheme.primary
-                    : scheme.outlineVariant.withValues(alpha: .55),
-                width: selected ? 1.6 : 1,
+            decoration: ShapeDecoration(
+              shape: RoundedSuperellipseBorder(
+                borderRadius: const BorderRadius.all(AppRadius.md),
+                side: BorderSide(
+                  color: selected
+                      ? scheme.primary
+                      : scheme.outlineVariant.withValues(alpha: .55),
+                  width: selected ? 1.6 : 1,
+                ),
               ),
             ),
             child: Column(
@@ -619,9 +573,7 @@ class _HomePageState extends State<HomePage> {
                   profile.label,
                   maxLines: 1,
                   overflow: TextOverflow.ellipsis,
-                  style: TextStyle(
-                    fontSize: 12.5,
-                    fontWeight: FontWeight.w600,
+                  style: AppTextStyle.footnoteEmphasized.copyWith(
                     color: selected ? scheme.onPrimary : scheme.onSurface,
                   ),
                 ),
@@ -686,18 +638,11 @@ class _HomePageState extends State<HomePage> {
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      const Text(
-                        '记住账号密码',
-                        style: TextStyle(
-                          fontSize: 14,
-                          fontWeight: FontWeight.w500,
-                        ),
-                      ),
+                      const Text('记住账号密码', style: AppTextStyle.body),
                       const SizedBox(height: 1),
                       Text(
                         '明文保存在本机配置文件，仅建议个人设备使用',
-                        style: TextStyle(
-                          fontSize: 11.5,
+                        style: AppTextStyle.caption.copyWith(
                           color: scheme.onSurfaceVariant,
                         ),
                       ),
@@ -760,10 +705,7 @@ class _HomePageState extends State<HomePage> {
                 color: scheme.onSurfaceVariant,
               ),
               const SizedBox(width: 8),
-              const Text(
-                '高级设置',
-                style: TextStyle(fontSize: 15, fontWeight: FontWeight.w700),
-              ),
+              const Text('高级设置', style: AppTextStyle.title),
             ],
           ),
           children: [
@@ -796,18 +738,11 @@ class _HomePageState extends State<HomePage> {
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      const Text(
-                        '断线自动重连',
-                        style: TextStyle(
-                          fontSize: 14,
-                          fontWeight: FontWeight.w500,
-                        ),
-                      ),
+                      const Text('断线自动重连', style: AppTextStyle.body),
                       const SizedBox(height: 1),
                       Text(
                         '每 60 秒检测一次，掉线自动用当前设备类型重新认证',
-                        style: TextStyle(
-                          fontSize: 11.5,
+                        style: AppTextStyle.caption.copyWith(
                           color: scheme.onSurfaceVariant,
                         ),
                       ),
@@ -850,8 +785,8 @@ class _HomePageState extends State<HomePage> {
 
   Widget _buildPrimaryButton() {
     final scheme = Theme.of(context).colorScheme;
-    return ClipRRect(
-      borderRadius: BorderRadius.circular(16),
+    return ClipRSuperellipse(
+      borderRadius: const BorderRadius.all(AppRadius.lg),
       child: DecoratedBox(
         decoration: BoxDecoration(
           gradient: _checking
@@ -873,7 +808,7 @@ class _HomePageState extends State<HomePage> {
                 _checking ? scheme.onSurfaceVariant : kBrandInk,
             elevation: 0,
             minimumSize: const Size.fromHeight(56),
-            shape: const RoundedRectangleBorder(),
+            shape: const RoundedSuperellipseBorder(),
           ),
           child: Row(
             mainAxisAlignment: MainAxisAlignment.center,
@@ -919,10 +854,12 @@ class _HomePageState extends State<HomePage> {
         key: ValueKey<String>('$ok:$message'),
         margin: const EdgeInsets.only(top: 16),
         padding: const EdgeInsets.all(14),
-        decoration: BoxDecoration(
+        decoration: ShapeDecoration(
           color: bg,
-          borderRadius: BorderRadius.circular(14),
-          border: Border.all(color: fg.withValues(alpha: .35)),
+          shape: RoundedSuperellipseBorder(
+            borderRadius: const BorderRadius.all(AppRadius.md),
+            side: BorderSide(color: fg.withValues(alpha: .35)),
+          ),
         ),
         child: Row(
           crossAxisAlignment: CrossAxisAlignment.start,
@@ -936,12 +873,7 @@ class _HomePageState extends State<HomePage> {
             Expanded(
               child: Text(
                 message,
-                style: TextStyle(
-                  color: fg,
-                  fontSize: 13.5,
-                  fontWeight: FontWeight.w500,
-                  height: 1.45,
-                ),
+                style: AppTextStyle.callout.copyWith(color: fg),
               ),
             ),
           ],
@@ -966,10 +898,7 @@ class _HomePageState extends State<HomePage> {
                   color: scheme.onSurfaceVariant,
                 ),
                 const SizedBox(width: 8),
-                const Text(
-                  '最近记录',
-                  style: TextStyle(fontSize: 15, fontWeight: FontWeight.w700),
-                ),
+                const Text('最近记录', style: AppTextStyle.title),
                 const Spacer(),
                 if (_log.isNotEmpty)
                   TextButton(onPressed: _clearLog, child: const Text('清空')),
@@ -981,8 +910,7 @@ class _HomePageState extends State<HomePage> {
                 child: Center(
                   child: Text(
                     '暂无认证记录，完成一次认证后在此显示',
-                    style: TextStyle(
-                      fontSize: 12.5,
+                    style: AppTextStyle.footnote.copyWith(
                       color: scheme.onSurfaceVariant,
                     ),
                   ),
@@ -1007,8 +935,7 @@ class _HomePageState extends State<HomePage> {
                       const SizedBox(width: 8),
                       Text(
                         _fmtTime(e.time),
-                        style: TextStyle(
-                          fontSize: 11.5,
+                        style: AppTextStyle.caption.copyWith(
                           color: scheme.onSurfaceVariant,
                         ),
                       ),
@@ -1018,16 +945,14 @@ class _HomePageState extends State<HomePage> {
                           horizontal: 8,
                           vertical: 3,
                         ),
-                        decoration: BoxDecoration(
+                        decoration: ShapeDecoration(
                           color: scheme.surfaceContainerHighest,
-                          borderRadius: BorderRadius.circular(999),
+                          shape: AppShape.pill,
                         ),
                         child: Text(
                           e.device,
-                          style: TextStyle(
-                            fontSize: 11,
+                          style: AppTextStyle.chip.copyWith(
                             color: scheme.onSurfaceVariant,
-                            fontWeight: FontWeight.w600,
                           ),
                         ),
                       ),
@@ -1037,8 +962,7 @@ class _HomePageState extends State<HomePage> {
                           e.message,
                           maxLines: 2,
                           overflow: TextOverflow.ellipsis,
-                          style: TextStyle(
-                            fontSize: 12.5,
+                          style: AppTextStyle.footnote.copyWith(
                             color: scheme.onSurfaceVariant,
                             height: 1.35,
                           ),
@@ -1071,8 +995,7 @@ class _HomePageState extends State<HomePage> {
               '请先连接校园 WiFi（未认证状态）再使用。'
               '本工具仅用于自己已购套餐的账号。',
               textAlign: TextAlign.center,
-              style: TextStyle(
-                fontSize: 11.5,
+              style: AppTextStyle.caption.copyWith(
                 color: scheme.onSurfaceVariant.withValues(alpha: .8),
               ),
             ),

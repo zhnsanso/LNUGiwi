@@ -4,9 +4,13 @@
 
 ## Unreleased
 
-### Planned
+### 风格设计（v2.0.2，学习 prism_ui）
 
-- **ui**: 移除应用内源码仓库链接入口（`kRepoUrl` 与右上角仓库按钮）
+- **ui**: 设计令牌层——`lib/ui/shape.dart`（`AppRadius`/`AppShape`，全超椭圆圆角）与 `lib/ui/typography.dart`（`AppTextStyle` 字号阶梯）
+- **ui**: 全面替换为超椭圆圆角（`RoundedSuperellipseBorder` / `ClipRSuperellipse`，胶囊亦为超椭圆全半径）
+- **ui**: 移除应用内源码仓库链接入口（`kRepoUrl` 与右上角按钮），去掉 `url_launcher` 依赖
+- **test**: `test/lint/style_tokens_test.dart` 固化令牌规则（令牌层外禁裸 `fontSize`/`FontWeight`/圆角 API）
+- **test**: goldens 随 UI 变更重新生成
 
 ## v2.0.1 (2026-11-08)
 

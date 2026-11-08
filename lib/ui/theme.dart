@@ -1,5 +1,8 @@
 import 'package:flutter/material.dart';
 
+import 'shape.dart';
+import 'typography.dart';
+
 /// 品牌主色（金黄，取自参考图标）
 const Color kBrandPrimary = Color(0xFFF3D223);
 
@@ -27,7 +30,7 @@ ThemeData buildGiWiFiTheme([Brightness brightness = Brightness.light]) {
     brightness: brightness,
   );
   final inputBorder = OutlineInputBorder(
-    borderRadius: BorderRadius.circular(14),
+    borderRadius: const BorderRadius.all(AppRadius.md),
     borderSide: BorderSide(
       color: isDark ? Colors.transparent : const Color(0xFFE3E8F2),
     ),
@@ -42,7 +45,7 @@ ThemeData buildGiWiFiTheme([Brightness brightness = Brightness.light]) {
       color: scheme.surface,
       elevation: 0,
       margin: EdgeInsets.zero,
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(18)),
+      shape: AppShape.card,
     ),
     inputDecorationTheme: InputDecorationTheme(
       filled: true,
@@ -55,26 +58,26 @@ ThemeData buildGiWiFiTheme([Brightness brightness = Brightness.light]) {
       enabledBorder: inputBorder,
       disabledBorder: inputBorder,
       focusedBorder: OutlineInputBorder(
-        borderRadius: BorderRadius.circular(14),
+        borderRadius: const BorderRadius.all(AppRadius.md),
         borderSide: BorderSide(color: scheme.primary, width: 1.6),
       ),
     ),
     filledButtonTheme: FilledButtonThemeData(
       style: FilledButton.styleFrom(
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
-        textStyle: const TextStyle(fontSize: 15, fontWeight: FontWeight.w600),
+        shape: AppShape.md,
+        textStyle: AppTextStyle.button,
       ),
     ),
     outlinedButtonTheme: OutlinedButtonThemeData(
       style: OutlinedButton.styleFrom(
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
+        shape: AppShape.md,
         side: BorderSide(color: scheme.outlineVariant),
-        textStyle: const TextStyle(fontSize: 15, fontWeight: FontWeight.w600),
+        textStyle: AppTextStyle.button,
       ),
     ),
-    snackBarTheme: SnackBarThemeData(
+    snackBarTheme: const SnackBarThemeData(
       behavior: SnackBarBehavior.floating,
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+      shape: AppShape.md,
     ),
   );
 }
