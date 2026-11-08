@@ -25,8 +25,4 @@ android/key.properties
 **/generated_config.cmake
 *_log.txt
 
-# .NET Windows lightweight app
-windows-lite/bin/
-windows-lite/obj/
-dist/
-publish/
+
