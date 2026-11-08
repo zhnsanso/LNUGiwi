@@ -4,6 +4,12 @@
 
 ## Unreleased
 
+### Planned
+
+- **ui**: 移除应用内源码仓库链接入口（`kRepoUrl` 与右上角仓库按钮）
+
+## v2.0.1 (2026-11-08)
+
 ### 工程规范（学习 FlClash 工程体系）
 
 - **lint**: 新增 `lint_options.yaml`（flutter_lints + 扩展规则：单引号、尾逗号、`child:` 最后、const/final 偏好、`always_declare_return_types` 等）
