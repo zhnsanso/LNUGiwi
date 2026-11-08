@@ -6,15 +6,15 @@
 
 ## 下载与安装
 
-从 [GitHub Releases](https://github.com/zhnsanso/LNUGiwi/releases) 页面获取各平台安装包（推送 `v*` 标签后由 Actions 自动构建）：
+从 [GitHub Releases](https://github.com/zhnsanso/LNUGiwi/releases) 页面获取各平台安装包（推送 `v*` 标签后由 Actions 自动构建，附 `SHA256SUMS` 校验和）：
 
 | 平台 | 产物 | 说明 |
 | --- | --- | --- |
+| Android | `GiWiFi-Android.apk` | 通用包，下载即装；debug 签名，需允许安装未知来源应用 |
 | Windows x64 | `GiWiFi-Windows-x64.zip` | 解压后运行 `giwifi_ua_switcher.exe` |
 | macOS（Intel + Apple Silicon） | `GiWiFi-macOS-universal.dmg` / `.zip` | 通用二进制 |
-| iOS | `GiWiFi-iOS-unsigned.zip` | 未签名，需自行侧载 |
 
-macOS 版发布包为同时支持 Intel 和 Apple Silicon 的 universal binary，由 GitHub Actions 的 `Apple builds` 工作流构建。
+macOS 版发布包为同时支持 Intel 和 Apple Silicon 的 universal binary，由 GitHub Actions 的 `Builds` 工作流构建。
 
 目前未配置 Apple Developer 签名与公证，因此首次打开时，macOS 可能需要在“系统设置 → 隐私与安全性”中手动允许打开。
 
@@ -30,11 +30,12 @@ flutter run
 发布构建：
 
 ```bash
-flutter build windows --release   # Windows，产物在 build/windows/x64/runner/Release/
+flutter build apk --release        # Android
+flutter build windows --release    # Windows，产物在 build/windows/x64/runner/Release/
 flutter build macos --release
-flutter build apk --release
-flutter build ios --release --no-codesign
 ```
+
+> 发布通道只覆盖 Android / macOS / Windows；iOS 因无签名证书不提供安装包，可自行从源码构建。
 
 > 自 v2.0.0 起项目回归单一 Flutter 实现，早期的 .NET Windows 轻量版（`windows-lite/`）已移除，可从 git 历史找回。此前使用轻量版的用户：Flutter 版读取同一个配置文件 `%APPDATA%\giwifi_ua_switcher\settings.json`，已保存的账号密码与设置会自动沿用，无需重新填写。
 

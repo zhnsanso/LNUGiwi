@@ -1,4 +1,4 @@
-name: Apple builds
+name: Builds
 
 on:
   workflow_dispatch:
@@ -10,8 +10,8 @@ permissions:
   contents: write
 
 jobs:
-  build-ios:
-    runs-on: macos-15
+  build-android:
+    runs-on: ubuntu-latest
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -25,19 +25,14 @@ jobs:
       - name: Install dependencies
         run: flutter pub get
 
-      - name: Build iOS (unsigned)
-        run: flutter build ios --release --no-codesign
+      - name: Build Android APK
+        run: flutter build apk --release
 
-      - name: Package iOS app
-        run: |
-          cd build/ios/iphoneos
-          zip -qry ../../GiWiFi-iOS-unsigned.zip Runner.app
-
-      - name: Upload iOS artifact
+      - name: Upload Android artifact
         uses: actions/upload-artifact@v4
         with:
-          name: ios-unsigned
-          path: build/GiWiFi-iOS-unsigned.zip
+          name: artifact-android
+          path: build/app/outputs/flutter-apk/app-release.apk
 
   build-macos:
     runs-on: macos-15
@@ -73,7 +68,7 @@ jobs:
       - name: Upload macOS artifact
         uses: actions/upload-artifact@v4
         with:
-          name: macos-universal
+          name: artifact-macos
           path: |
             build/GiWiFi-macOS-universal.zip
             build/GiWiFi-macOS-universal.dmg
@@ -104,22 +99,31 @@ jobs:
       - name: Upload Windows artifact
         uses: actions/upload-artifact@v4
         with:
-          name: windows-x64
+          name: artifact-windows
           path: build/GiWiFi-Windows-x64.zip
 
   release:
     if: startsWith(github.ref, 'refs/tags/v')
-    needs: [build-ios, build-macos, build-windows]
+    needs: [build-android, build-macos, build-windows]
     runs-on: ubuntu-latest
     steps:
       - name: Download all build artifacts
         uses: actions/download-artifact@v4
         with:
-          path: release-assets
+          path: dist/
+          pattern: artifact-*
           merge-multiple: true
+
+      - name: Name Android APK
+        run: mv dist/app-release.apk dist/GiWiFi-Android.apk
+
+      - name: Generate sha256
+        run: |
+          cd dist/
+          sha256sum ./* > SHA256SUMS
 
       - name: Publish GitHub release
         uses: softprops/action-gh-release@v2
         with:
-          files: release-assets/*
+          files: dist/*
           generate_release_notes: true

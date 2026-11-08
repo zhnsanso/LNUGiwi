@@ -40,7 +40,7 @@ Settings and logs go to `%APPDATA%\giwifi_ua_switcher` on Windows (other platfor
 
 ## Release
 
-`.github/workflows/apple.yml` (iOS + macOS + Windows builds) runs on manual dispatch or pushing a `v*` tag; the release job publishes a GitHub Release with all artifacts. First Windows CI build is unverified — prefer a `workflow_dispatch` dry run before tagging.
+`.github/workflows/builds.yml` (Android + macOS + Windows) runs on manual dispatch or pushing a `v*` tag. The release job merges all `artifact-*` artifacts into `dist/`, writes `SHA256SUMS`, and publishes a GitHub Release. No iOS artifacts: unsigned iOS builds are not installable without re-signing, so iOS users build from source. Android APK is debug-signed (installable, requires allowing unknown sources).
 
 Release order — the version in `pubspec.yaml` must match the tag or the release ships a mismatched internal version (this bit v1.1.6):
 
