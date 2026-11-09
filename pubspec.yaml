@@ -1,7 +1,7 @@
 name: giwifi_ua_switcher
 description: GiWiFi 校园网一键认证工具（UA 设备切换 + 换绑确认 + 自动二次认证）
 publish_to: 'none'
-version: 2.0.2+2026110803
+version: 2.1.0+2026110901
 
 environment:
   sdk: ^3.5.0
