@@ -4,6 +4,7 @@ import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:url_launcher/url_launcher.dart';
 
+import '../common/check_backoff.dart';
 import '../models/device_profile.dart';
 import '../services/auth_service.dart';
 import '../services/settings_service.dart';
@@ -42,6 +43,9 @@ class _HomePageState extends State<HomePage> {
 
   /// 常驻显示的在线时长（HH:MM:SS），离线/未知时为 null。
   String? _onlineDuration;
+
+  /// 自动重连检测的自适应间隔状态。
+  final CheckBackoff _backoff = CheckBackoff();
 
   /// 动态发现到的本机 IP（充值链接参数；可能为 null）。
   String? _lastClientIp;
@@ -182,6 +186,8 @@ class _HomePageState extends State<HomePage> {
         _onlineDuration = result.success ? result.onlineDuration : null;
         _lastClientIp = auth.effectiveClientIp ?? _lastClientIp;
       });
+      // 新会话建立后从最快档重新积累在线时长阶梯
+      if (result.success) _backoff.reset();
       await _appendLog(
         LogEntry(
           time: DateTime.now(),
@@ -330,33 +336,49 @@ class _HomePageState extends State<HomePage> {
     setState(() => _keepAlive = value);
     _keepAliveTimer?.cancel();
     if (value) {
-      _keepAliveTimer = Timer.periodic(
-        const Duration(seconds: 60),
-        (_) => _keepAliveTick(),
-      );
-      _showSnack('已开启断线自动重连（每 60 秒检测一次）');
+      _backoff.reset();
+      _scheduleNextCheck();
+      _showSnack('已开启断线自动重连（掉线即重连，在线时逐步放缓检测）');
     }
   }
 
+  /// 按当前自适应间隔安排下一次检测。
+  void _scheduleNextCheck() {
+    _keepAliveTimer?.cancel();
+    _keepAliveTimer = Timer(_backoff.current, _keepAliveTick);
+  }
+
   Future<void> _keepAliveTick() async {
-    if (_busy) return;
+    if (_busy) {
+      _scheduleNextCheck();
+      return;
+    }
     final profile = _selectedProfile;
-    if (profile.userAgent.isEmpty) return;
+    if (profile.userAgent.isEmpty) {
+      _scheduleNextCheck();
+      return;
+    }
     try {
       final auth = _auth;
       final status = await auth.checkOnline(profile.userAgent);
       if (status == OnlineStatus.online) {
+        _backoff.advance();
         final duration = await auth.fetchOnlineDuration(profile.userAgent);
         if (mounted && duration != _onlineDuration) {
           setState(() => _onlineDuration = duration);
         }
+        if (mounted) _scheduleNextCheck();
         return;
       }
-      if (status == OnlineStatus.offline && mounted) {
-        setState(() => _onlineDuration = null);
+      // 掉线 / 状态未知：回到最快档，掉线立即重连
+      _backoff.reset();
+      if (mounted) setState(() => _onlineDuration = null);
+      if (status == OnlineStatus.offline) {
         await _doLogin();
       }
+      if (mounted && _keepAlive) _scheduleNextCheck();
     } catch (_) {
+      if (mounted && _keepAlive) _scheduleNextCheck();
       // 下个周期重试
     }
   }
@@ -776,7 +798,8 @@ class _HomePageState extends State<HomePage> {
                       const Text('断线自动重连', style: AppTextStyle.body),
                       const SizedBox(height: 1),
                       Text(
-                        '每 60 秒检测一次，掉线自动用当前设备类型重新认证',
+                        '掉线自动用当前设备类型重新认证；'
+                        '在线时检测间隔逐步放缓（最长 10 分钟）',
                         style: AppTextStyle.caption.copyWith(
                           color: scheme.onSurfaceVariant,
                         ),
