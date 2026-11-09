@@ -2,10 +2,17 @@
 
 本项目的显著变更记录。遵循 [Conventional Commits](https://www.conventionalcommits.org/zh-hans/) 提交规范，发布时手动汇总至此。
 
-## Unreleased
+## v2.1.1 (2026-11-09)
 
-- **build**: Android APK 改用正式 release 签名（RSA-2048，30 年有效期，别名 `giwifi-release`）。**注意**：从 debug 签名的旧版本（≤ v2.1.0）升级时，Android 会拒绝覆盖安装，需先卸载旧版再装新版
+签名与健壮性版本：**Android APK 首次采用正式签名**。macOS 精简为单一 dmg 产物；断线自动重连引入自适应检测间隔；UI 拆分为独立组件（对外行为不变）。
+
+> **升级须知**：v2.1.0 及更早版本的 APK 为 debug 签名，与本版本签名不同，Android 会拒绝覆盖安装——请先卸载旧版再安装本版。
+
+- **build**: Android APK 改用正式 release 签名（RSA-2048，30 年有效期，别名 `giwifi-release`）
 - **build**: macOS 发布产物只保留 dmg（拖拽安装），移除 zip 通道
+- **feat**: 断线自动重连自适应检测间隔（1/2/5/10 分钟阶梯）：连续在线逐步放缓，掉线立即回到最快档并自动重连
+- **ci**: Flutter 版本钉死 3.47.9（CI 与本地一致，消除格式化漂移）；Gradle 依赖缓存；依赖仓库加入国内镜像兜底
+- **refactor**: 主界面拆分为 `lib/widgets/` 独立组件（纯重构，渲染不变）
 
 ## v2.1.0 (2026-11-09)
 
