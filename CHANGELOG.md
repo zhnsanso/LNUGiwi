@@ -2,6 +2,10 @@
 
 本项目的显著变更记录。遵循 [Conventional Commits](https://www.conventionalcommits.org/zh-hans/) 提交规范，发布时手动汇总至此。
 
+## Unreleased
+
+- **build**: macOS 发布产物只保留 dmg（拖拽安装），移除 zip 通道
+
 ## v2.1.0 (2026-11-09)
 
 健壮性与功能增强版：认证链路学习官方安卓客户端（REA 逆向分析）重构为动态发现 + 劫持探测，页脚新增充值 / 报修入口，状态胶囊常驻显示在线时长。

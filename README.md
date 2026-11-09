@@ -12,7 +12,7 @@
 | --- | --- | --- |
 | Android | `GiWiFi-Android.apk` | 通用包，下载即装；debug 签名，需允许安装未知来源应用 |
 | Windows x64 | `GiWiFi-Windows-x64.zip` | 解压后运行 `giwifi_ua_switcher.exe` |
-| macOS（Intel + Apple Silicon） | `GiWiFi-macOS-universal.dmg` / `.zip` | 通用二进制 |
+| macOS（Intel + Apple Silicon） | `GiWiFi-macOS-universal.dmg` | 通用二进制，打开后拖入 Applications 即完成安装 |
 
 macOS 版发布包为同时支持 Intel 和 Apple Silicon 的 universal binary，由 GitHub Actions 的 `Builds` 工作流构建。
 

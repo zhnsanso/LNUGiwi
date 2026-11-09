@@ -52,13 +52,11 @@ jobs:
       - name: Build macOS app
         run: flutter build macos --release
 
-      - name: Package macOS ZIP and DMG
+      - name: Package macOS DMG
         run: |
           set -euo pipefail
           app="build/macos/Build/Products/Release/giwifi_ua_switcher.app"
-          zip="build/GiWiFi-macOS-universal.zip"
           dmg="build/GiWiFi-macOS-universal.dmg"
-          zip -qry "$zip" "$app"
           rm -rf build/dmg-root
           mkdir -p build/dmg-root
           cp -R "$app" build/dmg-root/
@@ -69,9 +67,7 @@ jobs:
         uses: actions/upload-artifact@v6
         with:
           name: artifact-macos
-          path: |
-            build/GiWiFi-macOS-universal.zip
-            build/GiWiFi-macOS-universal.dmg
+          path: build/GiWiFi-macOS-universal.dmg
 
   build-windows:
     runs-on: windows-latest
