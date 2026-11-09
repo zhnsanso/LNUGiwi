@@ -21,3 +21,15 @@ Read before making changes:
 - Release order: bump `pubspec.yaml` → update CHANGELOG → commit → lightweight tag → push tag **by name** (`--follow-tags` skips lightweight tags silently).
 - The repository is **private**: Release assets are only downloadable by authorized accounts. Making releases reachable to students requires flipping visibility to public (owner decision, `gh repo edit --visibility public --accept-visibility-change-consequences`).
 - Credentials are stored in plaintext by design; never commit real accounts, passwords, or captured portal data.
+
+## REA Reverse-Engineering Toolkit (project-local)
+
+`rea-agents` is installed as an exact-pinned devDependency (`package.json`); `node_modules/` is gitignored. The `rea` MCP server is registered **project-level** in `opencode.json` (`node node_modules/rea-agents/scripts/rea.mjs mcp`), so CLI and MCP share one installation. Commit `package.json`, `package-lock.json`, and `opencode.json`; a fresh clone needs `npm install` to restore both.
+
+- MCP availability: the server auto-loads only for sessions opened in this repo. OpenCode hot-reloads the config — verify with `opencode mcp list` (expect `✓ rea connected`).
+- CLI usage: run `node_modules/.bin/rea <command>` (or `npm exec -- rea …`); `npx` resolves the local install first. Route large Evidence results to files outside the repo (e.g. `/tmp`), then page them with `rea inspect-analysis-view`.
+- Updating: `rea update` manages only global installs and is a no-op here. Update with `npm install --save-dev --save-exact rea-agents@latest`; the MCP command path follows `node_modules`, so `opencode.json` needs no change.
+- Diagnostics: `rea doctor` reads only **user-level** registrations — a project-level entry showing `config_drift` or `missing_analysis_engine` is expected, not a bug. `opencode mcp list` is the authoritative connection check.
+- Native engines (Hopper/Ghidra/IDA/JADX/Kuna) are **not** installed. Built-in static analysis (JS/Electron, .NET, PE/ELF headers, Go/Rust metadata, Flutter APK) needs none. For native decompilation, add provider env vars under the `rea` server entry in `opencode.json` (e.g. `HOPPER_LAUNCHER_PATH`, `REA_GHIDRA_STARTUP_TIMEOUT_MS`) — do **not** run `npx rea-agents setup`, it writes user-level config and skill files.
+- The bundled REA skill is not installed (it is user-level and independent of this project setup).
+- REA Evidence files, snapshots, and captures may embed real portal data and credentials — never commit them; keep them outside the repo. Use REA only on software we own or are authorized to analyze.

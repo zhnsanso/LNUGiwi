@@ -14,6 +14,9 @@ android/.gradle/
 android/local.properties
 android/key.properties
 
+# Node (REA 逆向分析工具,见 package.json)
+node_modules/
+
 # misc
 *.log
 .DS_Store

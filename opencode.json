@@ -1,0 +1,14 @@
+{
+  "mcp": {
+    "servers": {
+      "rea": {
+        "type": "local",
+        "command": [
+          "node",
+          "node_modules/rea-agents/scripts/rea.mjs",
+          "mcp"
+        ]
+      }
+    }
+  }
+}
