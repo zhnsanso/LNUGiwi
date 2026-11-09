@@ -4,7 +4,7 @@ GiWiFi 校园网认证工具（岭南师范学院），单一 Flutter 实现，�
 
 ## 仓库可见性
 
-- 仓库当前为 **private**：Release 资产仅登录且有权限的账号可下载。若要让学生用户下载安装包，需所有者将仓库转为 public（网页 Settings → Danger Zone，或 `gh repo edit zhnsanso/LNUGiwi --visibility public --accept-visibility-change-consequences`）。
+- 仓库当前为 **private**：Release 资产仅登录且有权限的账号可下载。若要让学生用户下载安装包，需所有者将仓库转为 public（网页 Settings → Danger Zone，或 `gh repo edit zhnsanso/LNUGiwi --visibility public --accept-visibility-change-consequences`）。**2026-11-09 决定：v2.1.0 后处于观察期，暂不转公开**——在此之前不要主动重提可见性变更。
 - 发版管线已两次实战全绿：v2.0.2（2026-11-08）首跑、v2.1.0（2026-11-09）复跑——三平台构建 + release job（产物合并、APK 重命名、SHA256SUMS、GitHub Release）稳定可用。
 
 ## 版本
