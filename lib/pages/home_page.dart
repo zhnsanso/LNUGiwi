@@ -46,6 +46,7 @@ class _HomePageState extends State<HomePage> {
   AuthService get _auth => AuthService(
         baseUrl: _serverCtrl.text.trim(),
         wlanAcName: _acNameCtrl.text.trim(),
+        discover: true,
       );
 
   @override

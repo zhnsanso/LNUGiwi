@@ -76,11 +76,34 @@ class AuthService {
     this.rebindCooldown = const Duration(seconds: 6),
     this.portalCooldown = const Duration(seconds: 6),
     this.verifyInterval = const Duration(seconds: 2),
-  });
+    this.probeUrl = kPortalProbeUrl,
+    this.discover = false,
+    this.fastRetryDelay = const Duration(milliseconds: 1200),
+  })  : _portalBase = baseUrl,
+        _portalAcName = wlanAcName;
 
   final String baseUrl;
   final String wlanAcName;
   final Duration timeout;
+
+  /// 劫持探测地址：在线时应返回 204，未认证时被 AC 302 到门户登录页。
+  final String probeUrl;
+
+  /// 是否启用门户动态发现。生产 UI 开启；测试默认关闭以免访问外网。
+  final bool discover;
+
+  /// 单请求网络类异常后的快速重试间隔。
+  final Duration fastRetryDelay;
+
+  /// 运行时生效的门户地址 / AC 名：发现到劫持重定向后覆盖构造值。
+  String _portalBase;
+  String _portalAcName;
+
+  /// 发现到的本机客户端 IP（重定向里的 wlanuserip，真实值）。
+  String? _clientIp;
+
+  /// 每个实例只探测一次。
+  bool _probed = false;
 
   /// 提交换绑后、再次认证前的冷却时间（门户页大约 6 秒后允许再次点击）。
   final Duration rebindCooldown;
@@ -101,6 +124,11 @@ class AuthService {
   static const String kLogoutPath = '/gportal/web/logout';
   static const String kLoginActionPath = '/gportal/Web/loginAction';
   static const String kLogoutActionPath = '/gportal/Web/logoutAction';
+
+  /// 探测地址选小米的 204 服务：国内校园网内可达、响应最轻，
+  /// 且与官方客户端“请求任意 HTTP 地址看是否被劫持”的探测思路一致。
+  static const String kPortalProbeUrl =
+      'http://connect.rom.miui.com/generate_204';
 
   /// 中断当前认证流程。关闭 socket 后 Android 上也能立即返回。
   void cancel() {
@@ -258,6 +286,9 @@ class AuthService {
     required String userAgent,
     required String accountType,
   }) async {
+    if (discover) {
+      await _discoverPortal(userAgent);
+    }
     final html = await fetchLoginPage(userAgent);
 
     if (!_hasPasswordInput(html)) {
@@ -329,7 +360,7 @@ class AuthService {
     final data = aesCbcZeroPadEncrypt(formStr, kGiWifiAesKey, iv);
 
     final body = await _postText(
-      '$baseUrl$kLoginActionPath',
+      '$_portalBase$kLoginActionPath',
       userAgent,
       body: 'data=${Uri.encodeComponent(data)}'
           '&iv=${Uri.encodeComponent(iv)}',
@@ -418,7 +449,7 @@ class AuthService {
     // 换绑/正常认证后门户异步放行（约 2~5 秒），轮询等待上线。
     for (var i = 0; i < 6; i++) {
       try {
-        final html = await _getText('$baseUrl$kLogoutPath', userAgent);
+        final html = await _getText('$_portalBase$kLogoutPath', userAgent);
         if (_hasPasswordInput(html)) return _OnlineVerify.offline;
         if (_hasSiInput(html)) return _OnlineVerify.online;
       } catch (_) {
@@ -432,7 +463,7 @@ class AuthService {
   /// 当前设备是否已有在线会话（门户只在下发 si 时表示在线）。
   Future<bool> _hasActiveSession(String userAgent) async {
     try {
-      final html = await _getText('$baseUrl$kLogoutPath', userAgent);
+      final html = await _getText('$_portalBase$kLogoutPath', userAgent);
       return _hasSiInput(html);
     } catch (_) {
       return false;
@@ -447,7 +478,7 @@ class AuthService {
   /// 认证成功后查询在线时长（HH:MM:SS）；离线或解析失败返回 null。
   Future<String?> _fetchOnlineDuration(String userAgent) async {
     try {
-      final html = await _getText('$baseUrl$kLogoutPath', userAgent);
+      final html = await _getText('$_portalBase$kLogoutPath', userAgent);
       if (_hasPasswordInput(html)) return null;
       final match =
           RegExp(r'data-timestamp=["\x27]?(\d{10})').firstMatch(html) ??
@@ -477,13 +508,21 @@ class AuthService {
   /// 这里按浏览器最终行为依次尝试，只认带密码框的登录表单页；
   /// 连接失败时再带通用 wlan 参数重试一次。
   Future<String> fetchLoginPage(String userAgent) async {
-    final acName = Uri.encodeQueryComponent(wlanAcName.trim());
+    final base = _portalBase;
+    final acName = Uri.encodeQueryComponent(_portalAcName.trim());
+    final ip = Uri.encodeQueryComponent(_clientIp ?? '');
+    // 与浏览器被劫持后的落地页完全一致的 URL（带真实参数）
+    final hijackedUrl = ip.isEmpty
+        ? null
+        : '$base$kLoginPath?wlanuserip=$ip&wlanacname=$acName'
+            '&pagetype=login&logintype=2';
     final urls = <String>[
-      '$baseUrl$kLoginPath?wlanacname=$acName',
-      '$baseUrl$kLoginPath?wlanacname=$acName&is_mobile=1&pagetype=login&logintype=1',
-      '$baseUrl$kLoginPath',
-      '$baseUrl$kLoginPath?is_mobile=1&pagetype=login&logintype=1',
-      '$baseUrl$kLoginPath?wlanuserip=10.0.0.1&wlanacname=GiWiFi',
+      if (hijackedUrl != null) hijackedUrl,
+      '$base$kLoginPath?wlanacname=$acName',
+      '$base$kLoginPath?wlanacname=$acName&is_mobile=1&pagetype=login&logintype=1',
+      '$base$kLoginPath',
+      '$base$kLoginPath?is_mobile=1&pagetype=login&logintype=1',
+      '$base$kLoginPath?wlanuserip=10.0.0.1&wlanacname=GiWiFi',
     ];
     Object? lastError;
     String? firstPage;
@@ -508,7 +547,7 @@ class AuthService {
   /// 以 logout 页是否下发 si 为准确信号。
   Future<OnlineStatus> checkOnline(String userAgent) async {
     try {
-      final html = await _getText('$baseUrl$kLogoutPath', userAgent);
+      final html = await _getText('$_portalBase$kLogoutPath', userAgent);
       if (_hasSiInput(html)) return OnlineStatus.online;
       if (_hasPasswordInput(html)) return OnlineStatus.offline;
       return OnlineStatus.unknown;
@@ -521,7 +560,7 @@ class AuthService {
   /// 返回 true 表示门户确认“下线成功”（status=1）。
   Future<bool> logout(String userAgent) async {
     try {
-      final html = await _getText('$baseUrl$kLogoutPath', userAgent);
+      final html = await _getText('$_portalBase$kLogoutPath', userAgent);
       final hidden = parseHiddenInputs(html);
       final si = hidden['si'] ?? '';
       if (si.isEmpty) return false;
@@ -539,7 +578,39 @@ class AuthService {
 
   // ================= HTTP 基础（会话复用 + 跟随重定向） =================
 
+  /// 网络类异常（连接失败/超时/中断）先快速重试一次再上抛：
+  /// 弱 WiFi 下偶发丢包很常见，直接失败会把代价转移到
+  /// 上层带 6 秒冷却的整轮重试，这里先自救。
+  Future<T> _fastRetry<T>(Future<T> Function() fn) async {
+    try {
+      return await fn();
+    } on AuthCancelledException {
+      rethrow;
+    } on SocketException {
+      return _retryAfterDelay(fn);
+    } on TimeoutException {
+      return _retryAfterDelay(fn);
+    } on HttpException {
+      return _retryAfterDelay(fn);
+    }
+  }
+
+  Future<T> _retryAfterDelay<T>(Future<T> Function() fn) async {
+    await _sleep(fastRetryDelay);
+    return fn();
+  }
+
   Future<String> _getText(
+    String url,
+    String userAgent, {
+    int maxRedirects = 5,
+  }) {
+    return _fastRetry(
+      () => _getTextOnce(url, userAgent, maxRedirects: maxRedirects),
+    );
+  }
+
+  Future<String> _getTextOnce(
     String url,
     String userAgent, {
     int maxRedirects = 5,
@@ -576,6 +647,24 @@ class AuthService {
   }
 
   Future<String> _postText(
+    String url,
+    String userAgent, {
+    required String body,
+    String contentType = 'application/x-www-form-urlencoded; charset=UTF-8',
+    int maxRedirects = 5,
+  }) {
+    return _fastRetry(
+      () => _postTextOnce(
+        url,
+        userAgent,
+        body: body,
+        contentType: contentType,
+        maxRedirects: maxRedirects,
+      ),
+    );
+  }
+
+  Future<String> _postTextOnce(
     String url,
     String userAgent, {
     required String body,
@@ -623,6 +712,62 @@ class AuthService {
     }
     throw const HttpException('重定向次数过多');
   }
+
+  // ================= 门户动态发现 =================
+
+  /// 解析 AC 劫持重定向：未认证时任意 HTTP 请求会被 302 到
+  /// 门户登录页，地址携带真实的 wlanuserip / wlanacname。
+  /// 只认长得像登录页的跳转；其余返回 null（保持原配置）。
+  static ({String base, String acName, String clientIp})? parsePortalRedirect(
+    String location,
+  ) {
+    final uri = Uri.tryParse(location);
+    if (uri == null || !uri.isAbsolute || !uri.path.contains('login')) {
+      return null;
+    }
+    final acName = uri.queryParameters['wlanacname'] ?? '';
+    final clientIp = uri.queryParameters['wlanuserip'] ?? '';
+    if (acName.isEmpty && clientIp.isEmpty) return null;
+    final port = uri.hasPort && uri.port != 80 ? ':${uri.port}' : '';
+    return (
+      base: 'http://${uri.host}$port',
+      acName: acName,
+      clientIp: clientIp,
+    );
+  }
+
+  /// 探测 AC 劫持并更新运行时门户配置（地址 / AC 名 / 本机 IP）。
+  /// 在线时探测点返回 204、无重定向，配置保持不变；
+  /// 任何失败都静默跳过——动态发现只是增强，不阻塞也不破坏主流程。
+  Future<void> _discoverPortal(String userAgent) async {
+    if (_probed) return;
+    _probed = true;
+    try {
+      final client = _client;
+      _activeClient = client;
+      final req = await client.getUrl(Uri.parse(probeUrl)).timeout(timeout);
+      // 必须手动看首跳 Location，不能让 HttpClient 自动跟掉
+      req.followRedirects = false;
+      req.headers.set(HttpHeaders.userAgentHeader, userAgent);
+      final resp = await req.close().timeout(timeout);
+      _checkCancelled();
+      final location = resp.headers.value(HttpHeaders.locationHeader);
+      unawaited(resp.drain<void>());
+      if (location == null) return;
+      final found = parsePortalRedirect(location);
+      if (found == null) return;
+      if (found.acName.isNotEmpty) _portalAcName = found.acName;
+      if (found.clientIp.isNotEmpty) _clientIp = found.clientIp;
+      _portalBase = found.base;
+    } on AuthCancelledException {
+      rethrow;
+    } catch (_) {
+      // 探测失败按无劫持处理
+    }
+  }
+
+  /// 当前运行时生效的门户地址（诊断用）。
+  String get effectiveBaseUrl => _portalBase;
 
   /// 可被 cancel() 打断的等待。
   Future<void> _sleep(Duration duration) async {

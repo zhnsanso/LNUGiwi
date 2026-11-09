@@ -2,6 +2,12 @@
 
 本项目的显著变更记录。遵循 [Conventional Commits](https://www.conventionalcommits.org/zh-hans/) 提交规范，发布时手动汇总至此。
 
+## Unreleased
+
+- **feat**: 门户动态发现——登录前探测 AC 劫持重定向（`connect.rom.miui.com/generate_204`），从 302 Location 解析真实的门户地址 / `wlanacname` / `wlanuserip` 并在运行时覆盖配置（学习官方客户端的发现机制）；在线或无劫持时保持原配置，任何探测失败静默跳过
+- **feat**: 单请求快速重试——网络类异常（连接失败 / 超时 / 中断）先以 1.2 秒间隔自动重发一次再上抛，弱 WiFi 下不必进入上层 6 秒冷却的整轮重试
+- **test**: `test/portal_discovery_test.dart`：重定向解析单测 + 302 劫持切换门户 / 在线不干扰 / 连接重置自愈三组集成测试
+
 ## v2.0.2 (2026-11-08)
 
 重构完成后的首个正式发布：单一 Flutter 实现 + FlClash 式工程体系 + 设计令牌。发布产物见 GitHub Release（Android APK / macOS dmg+zip / Windows zip，附 SHA256SUMS）。
