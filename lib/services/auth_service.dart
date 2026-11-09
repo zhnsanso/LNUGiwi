@@ -543,9 +543,17 @@ class AuthService {
   }
 
   /// 当前设备在线状态。
-  /// 登录页在 PC 端无论在线与否都渲染表单，不能作为依据；
-  /// 以 logout 页是否下发 si 为准确信号。
+  /// 开启动态发现时先做劫持探测：被劫持重定向即确定掉线
+  /// （只有校园 AC 未认证时才会劫持），并顺带刷新门户参数；
+  /// 探测正常应答不能证明在校园网（家庭宽带同样 204），
+  /// 仍回落 logout 页 si 嗅探确认；探测不可达同样回落。
   Future<OnlineStatus> checkOnline(String userAgent) async {
+    if (discover) {
+      final outcome = await _probe(userAgent);
+      if (outcome == _ProbeOutcome.hijacked) {
+        return OnlineStatus.offline;
+      }
+    }
     try {
       final html = await _getText('$_portalBase$kLogoutPath', userAgent);
       if (_hasSiInput(html)) return OnlineStatus.online;
@@ -736,12 +744,9 @@ class AuthService {
     );
   }
 
-  /// 探测 AC 劫持并更新运行时门户配置（地址 / AC 名 / 本机 IP）。
-  /// 在线时探测点返回 204、无重定向，配置保持不变；
-  /// 任何失败都静默跳过——动态发现只是增强，不阻塞也不破坏主流程。
-  Future<void> _discoverPortal(String userAgent) async {
-    if (_probed) return;
-    _probed = true;
+  /// 发起一次劫持探测。被劫持时顺带刷新运行时门户配置
+  /// （地址 / AC 名 / 本机 IP）；在线或探测失败时配置保持不变。
+  Future<_ProbeOutcome> _probe(String userAgent) async {
     try {
       final client = _client;
       _activeClient = client;
@@ -753,17 +758,25 @@ class AuthService {
       _checkCancelled();
       final location = resp.headers.value(HttpHeaders.locationHeader);
       unawaited(resp.drain<void>());
-      if (location == null) return;
+      if (location == null) return _ProbeOutcome.clear;
       final found = parsePortalRedirect(location);
-      if (found == null) return;
+      if (found == null) return _ProbeOutcome.clear;
       if (found.acName.isNotEmpty) _portalAcName = found.acName;
       if (found.clientIp.isNotEmpty) _clientIp = found.clientIp;
       _portalBase = found.base;
+      return _ProbeOutcome.hijacked;
     } on AuthCancelledException {
       rethrow;
     } catch (_) {
-      // 探测失败按无劫持处理
+      return _ProbeOutcome.unreachable;
     }
+  }
+
+  /// 登录前的门户发现探测（每个实例只做一次）。
+  Future<void> _discoverPortal(String userAgent) async {
+    if (_probed) return;
+    _probed = true;
+    await _probe(userAgent);
   }
 
   /// 当前运行时生效的门户地址（诊断用）。
@@ -786,3 +799,15 @@ class AuthService {
 
 /// 在线复核结果（仅本文件内部使用）。
 enum _OnlineVerify { online, offline, unknown }
+
+/// 劫持探测结果（仅本文件内部使用）。
+enum _ProbeOutcome {
+  /// 探测点正常应答（如 204）：未被劫持。
+  clear,
+
+  /// 被劫持重定向到门户登录页：仅在校园 AC 后面且未认证时发生。
+  hijacked,
+
+  /// 探测不可达（未连 WiFi / DNS 失败 / 超时）。
+  unreachable,
+}

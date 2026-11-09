@@ -249,4 +249,109 @@ void main() {
     expect(result.success, isTrue, reason: result.message);
     expect(loginGets, greaterThanOrEqualTo(2), reason: '应自动重发了被掐断的请求');
   });
+
+  group('checkOnline 劫持探测优先', () {
+    test('被劫持重定向 → 确定掉线，且无需再嗅探 logout 页', () async {
+      final portal = await HttpServer.bind(InternetAddress.loopbackIPv4, 0);
+      final probe = await HttpServer.bind(InternetAddress.loopbackIPv4, 0);
+      var logoutGets = 0;
+
+      portal.listen((req) async {
+        if (req.uri.path == '/gportal/web/logout') logoutGets++;
+        req.response.statusCode = 404;
+        await req.response.close();
+      });
+      probe.listen((req) async {
+        req.response.statusCode = 302;
+        req.response.headers.set(
+          HttpHeaders.locationHeader,
+          'http://127.0.0.1:${portal.port}/gportal/web/login'
+          '?wlanuserip=10.5.5.5&wlanacname=GiWiFi_test',
+        );
+        await req.response.close();
+      });
+
+      final auth = AuthService(
+        baseUrl: 'http://127.0.0.1:${portal.port}',
+        probeUrl: 'http://127.0.0.1:${probe.port}/generate_204',
+        discover: true,
+        fastRetryDelay: const Duration(milliseconds: 50),
+      );
+      final status = await auth.checkOnline('TestUA');
+      await portal.close(force: true);
+      await probe.close(force: true);
+
+      expect(status, OnlineStatus.offline);
+      expect(logoutGets, 0, reason: '劫持已是确定信号，不应再请求 logout 页');
+    });
+
+    test('探测正常应答 → 回落 logout 页 si 确认在线', () async {
+      final portal = await HttpServer.bind(InternetAddress.loopbackIPv4, 0);
+      final probe = await HttpServer.bind(InternetAddress.loopbackIPv4, 0);
+      var logoutGets = 0;
+
+      portal.listen((req) async {
+        if (req.uri.path == '/gportal/web/logout') {
+          logoutGets++;
+          final start = DateTime.now().millisecondsSinceEpoch ~/ 1000;
+          req.response.write(
+            '<html><input type="hidden" name="si" value="sess1">'
+            'var start = "$start"; online_duration</html>',
+          );
+          await req.response.close();
+          return;
+        }
+        req.response.statusCode = 404;
+        await req.response.close();
+      });
+      probe.listen((req) async {
+        req.response.statusCode = 204;
+        await req.response.close();
+      });
+
+      final auth = AuthService(
+        baseUrl: 'http://127.0.0.1:${portal.port}',
+        probeUrl: 'http://127.0.0.1:${probe.port}/generate_204',
+        discover: true,
+        fastRetryDelay: const Duration(milliseconds: 50),
+      );
+      final status = await auth.checkOnline('TestUA');
+      await portal.close(force: true);
+      await probe.close(force: true);
+
+      // 探测 204 不能证明在校园网（家庭宽带同样 204），必须回落确认
+      expect(status, OnlineStatus.online);
+      expect(logoutGets, 1);
+    });
+
+    test('探测不可达 → 回落 logout 页密码框判掉线', () async {
+      final portal = await HttpServer.bind(InternetAddress.loopbackIPv4, 0);
+      // 探测端口故意用没人监听的地址
+      final deadProbe = await HttpServer.bind(InternetAddress.loopbackIPv4, 0);
+      final deadPort = deadProbe.port;
+      await deadProbe.close();
+
+      portal.listen((req) async {
+        if (req.uri.path == '/gportal/web/logout') {
+          req.response.headers.contentType = ContentType.html;
+          req.response.write(_formPage());
+          await req.response.close();
+          return;
+        }
+        req.response.statusCode = 404;
+        await req.response.close();
+      });
+
+      final auth = AuthService(
+        baseUrl: 'http://127.0.0.1:${portal.port}',
+        probeUrl: 'http://127.0.0.1:$deadPort/generate_204',
+        discover: true,
+        fastRetryDelay: const Duration(milliseconds: 50),
+      );
+      final status = await auth.checkOnline('TestUA');
+      await portal.close(force: true);
+
+      expect(status, OnlineStatus.offline);
+    });
+  });
 }
