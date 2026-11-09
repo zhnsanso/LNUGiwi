@@ -24,6 +24,14 @@ GiWiFi 校园网认证工具（岭南师范学院），单一 Flutter 实现，�
 - 充值入口是门户自带的 `lnsfv2.pc.gwifi.com.cn/Gishop/index.php/pay/prevcharge?wa=<AC名>&ip=<IP>`，页脚按钮按动态发现的参数拼装。
 - 门户页含运维信息：热线 18312680661（短号 666111）、营业厅尚雅 C 对面（已进报修弹窗）。
 
+## Android 正式签名（v2.1.1 起）
+
+- 密钥库在仓库外 `/root/giwifi-signing/`（jks + 密码 + base64 备份 + 备份说明）；别名 `giwifi-release`，RSA-2048，有效期 30 年，SHA-256 指纹 `F3:A7:85:88:EA:C6:46:D1:43:93:44:09:84:61:C6:CF:2C:AB:72:A5:1D:E1:A0:D3:26:33:60:D9:F9:5C:97:28`。
+- GitHub Secrets：`ANDROID_KEYSTORE_BASE64` / `ANDROID_KEYSTORE_PASSWORD` / `ANDROID_KEY_ALIAS` / `ANDROID_KEY_PASSWORD`；builds.yml 构建前解码 jks 并生成 `android/key.properties`（gitignored），未配置时回退 debug 签名。
+- `android/app/build.gradle.kts` 按 key.properties 是否存在选择 release/debug 签名——本地 `flutter run --release` 依然可用。
+- **密钥丢失 = 永久失去更新已安装用户的能力**；备份目录务必保存到密码管理器/私有云。换签名 = 所有用户必须卸载重装（跨签名覆盖安装被 Android 拒绝）。
+- 验签方法：`keytool -printcert -jarfile GiWiFi-Android.apk`，比对上面指纹。
+
 ## 历史结构（勿回退）
 
 - v2.0.0 起为单一 Flutter 实现；此前的 .NET Windows 轻量版（`windows-lite/`）已移除，可从 git 历史找回。不要重新引入 C# 副本，扩展 Dart 实现。

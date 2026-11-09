@@ -10,7 +10,7 @@
 
 | 平台 | 产物 | 说明 |
 | --- | --- | --- |
-| Android | `GiWiFi-Android.apk` | 通用包，下载即装；debug 签名，需允许安装未知来源应用 |
+| Android | `GiWiFi-Android.apk` | 通用包，下载即装；正式签名（自 v2.1.1 起；v2.1.0 及更早为 debug 签名，跨签名升级需先卸载旧版） |
 | Windows x64 | `GiWiFi-Windows-x64.zip` | 解压后运行 `giwifi_ua_switcher.exe` |
 | macOS（Intel + Apple Silicon） | `GiWiFi-macOS-universal.dmg` | 通用二进制，打开后拖入 Applications 即完成安装 |
 

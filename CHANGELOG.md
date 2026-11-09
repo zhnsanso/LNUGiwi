@@ -4,6 +4,7 @@
 
 ## Unreleased
 
+- **build**: Android APK 改用正式 release 签名（RSA-2048，30 年有效期，别名 `giwifi-release`）。**注意**：从 debug 签名的旧版本（≤ v2.1.0）升级时，Android 会拒绝覆盖安装，需先卸载旧版再装新版
 - **build**: macOS 发布产物只保留 dmg（拖拽安装），移除 zip 通道
 
 ## v2.1.0 (2026-11-09)
