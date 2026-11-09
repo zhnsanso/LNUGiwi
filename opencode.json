@@ -7,7 +7,10 @@
           "node",
           "node_modules/rea-agents/scripts/rea.mjs",
           "mcp"
-        ]
+        ],
+        "environment": {
+          "REA_JADX_MCP_JAR": "/root/LNUGiwi/tools/jadx-headless-mcp-0.7.1-all.jar"
+        }
       }
     }
   }

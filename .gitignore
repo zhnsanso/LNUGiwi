@@ -16,6 +16,7 @@ android/key.properties
 
 # Node (REA 逆向分析工具,见 package.json)
 node_modules/
+/tools/
 
 # misc
 *.log
