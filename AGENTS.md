@@ -21,6 +21,7 @@ Read before making changes:
 - Release order: bump `pubspec.yaml` → update CHANGELOG → commit → lightweight tag → push tag **by name** (`--follow-tags` skips lightweight tags silently).
 - The repository is **private**: Release assets are only downloadable by authorized accounts. Making releases reachable to students requires flipping visibility to public (owner decision, `gh repo edit --visibility public --accept-visibility-change-consequences`).
 - Credentials are stored in plaintext by design; never commit real accounts, passwords, or captured portal data.
+- Portal discovery and probe-first offline detection are intentional core behavior (v2.1.0, verified on the real network): do not reintroduce hardcoded portal assumptions or drop the hijack probe from `checkOnline` — `test/portal_discovery_test.dart` freezes this. The gateway wifidog port (8060) does not exist in this deployment; do not revisit it.
 
 ## REA Reverse-Engineering Toolkit (project-local)
 
