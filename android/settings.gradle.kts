@@ -11,12 +11,11 @@ pluginManagement {
     includeBuild("$flutterSdkPath/packages/flutter_tools/gradle")
 
     repositories {
-        // 国内镜像优先：Maven Central 的部分构件（如 Kotlin 编译器）会重定向到
-        // GitHub Releases 下载，CDN 抖动时 504；镜像直连绕开该故障面。
-        maven("https://maven.aliyun.com/repository/public")
-        maven("https://mirrors.cloud.tencent.com/nexus/repository/maven-public/")
+        // 官方源优先，镜像兜底（Gradle 遇 5xx 中止解析而非顺延，勿把镜像放最前）
         google()
         mavenCentral()
+        maven("https://maven.aliyun.com/repository/public")
+        maven("https://mirrors.cloud.tencent.com/nexus/repository/maven-public/")
         gradlePluginPortal()
     }
 }

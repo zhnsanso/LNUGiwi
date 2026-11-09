@@ -1,11 +1,11 @@
 allprojects {
     repositories {
-        // 国内镜像优先：绕开 Maven Central→GitHub Releases 的 CDN 504 抖动；
-        // Flutter 引擎仓库（io.flutter:*）由 Flutter Gradle 插件另行注入项目级仓库。
-        maven("https://maven.aliyun.com/repository/public")
-        maven("https://mirrors.cloud.tencent.com/nexus/repository/maven-public/")
+        // 官方源优先（v2.1.0 实证稳定）；阿里云/腾讯镜像兜底。
+        // 注意 Gradle 遇 5xx 中止解析而非顺延，镜像放前面反而放大单点抖动。
         google()
         mavenCentral()
+        maven("https://maven.aliyun.com/repository/public")
+        maven("https://mirrors.cloud.tencent.com/nexus/repository/maven-public/")
     }
 }
 
