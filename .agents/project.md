@@ -2,6 +2,11 @@
 
 GiWiFi 校园网认证工具（岭南师范学院），单一 Flutter 实现，支持 Android / macOS / Windows（iOS 可源码自建）。UI、文档、注释为中文。
 
+## 仓库可见性
+
+- 仓库当前为 **private**：Release 资产仅登录且有权限的账号可下载。若要让学生用户下载安装包，需所有者将仓库转为 public（网页 Settings → Danger Zone，或 `gh repo edit zhnsanso/LNUGiwi --visibility public --accept-visibility-change-consequences`）。
+- v2.0.2（2026-11-08）是发版管线首次实战并全绿：三平台构建 + release job（产物合并、APK 重命名、SHA256SUMS、GitHub Release）均验证可用。
+
 ## 版本
 
 - 版本号在 `pubspec.yaml`，格式 `X.Y.Z+日期NNN`（如 `2.0.0+2026110801`），build 号为日期式。

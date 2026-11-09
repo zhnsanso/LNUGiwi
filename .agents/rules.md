@@ -7,6 +7,14 @@
 - `flutter analyze --fatal-infos` 必须零通过才算干净（与 check CI 一致）。
 - 注释只写代码说不出的东西（非显然约束、绕过的上游行为、易误读的原因）；不逐行复述代码、不叙述刚做的改动。顺手删除所改文件中的注释掉的代码和过期备注。
 
+## 风格令牌（v2.0.2 起）
+
+- 圆角一律取自 `lib/ui/shape.dart`（`AppRadius` 值 + `AppShape` 预构建形状），渲染一律超椭圆：`RoundedSuperellipseBorder` / `ClipRSuperellipse`；胶囊用 `AppShape.pill`（超椭圆全半径），不用 `StadiumBorder`。
+- 字号/字重一律取自 `lib/ui/typography.dart` 的 `AppTextStyle` 阶梯；颜色等场景差异用 `copyWith` 叠加，不进阶梯。
+- 令牌层（`lib/ui/` 三个文件）之外禁止裸 `fontSize:` / `FontWeight.` / `ClipRRect` / `RoundedRectangleBorder` / `StadiumBorder` / `BorderRadius.circular(`；`test/lint/style_tokens_test.dart` 扫描 `lib/` 强制执行。
+- 只接受 Radius 的 API（如 `OutlineInputBorder`）无法用超椭圆：取值仍从 `AppRadius` 拿。
+- goldens 在 Linux 上生成：有意的 UI 变更后必须在 Linux 工具链 `flutter test --update-goldens`，否则 ubuntu-24.04 CI 必失败（字体抗锯齿跨平台有约 1-2% 像素噪声，布局无关）。
+
 ## 提交与变更范围
 
 - Conventional Commits：`feat:` / `fix:` / `docs:` / `refactor:` / `ci:` / `chore:`，scope 用英文小写（如 `release`、`lint`、`ui`）。
