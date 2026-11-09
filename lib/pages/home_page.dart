@@ -9,8 +9,14 @@ import '../models/device_profile.dart';
 import '../services/auth_service.dart';
 import '../services/settings_service.dart';
 import '../ui/shape.dart';
-import '../ui/theme.dart';
 import '../ui/typography.dart';
+import '../widgets/auth_log_card.dart';
+import '../widgets/device_tile.dart';
+import '../widgets/footer_actions.dart';
+import '../widgets/home_header.dart';
+import '../widgets/primary_auth_button.dart';
+import '../widgets/result_banner.dart';
+import '../widgets/section_title.dart';
 
 class HomePage extends StatefulWidget {
   const HomePage({super.key});
@@ -390,23 +396,6 @@ class _HomePageState extends State<HomePage> {
     _showSnack('日志已清除');
   }
 
-  String _fmtTime(DateTime t) {
-    String two(int n) => n.toString().padLeft(2, '0');
-    return '${two(t.hour)}:${two(t.minute)}:${two(t.second)}';
-  }
-
-  IconData _iconFor(String id) => switch (id) {
-        'pc' => Icons.computer_rounded,
-        'android_phone' => Icons.smartphone_rounded,
-        'iphone' => Icons.phone_iphone_rounded,
-        'ipad' => Icons.tablet_mac_rounded,
-        'android_tablet' => Icons.tablet_android_rounded,
-        'custom' => Icons.tune_rounded,
-        _ => Icons.devices_rounded,
-      };
-
-  // ================= UI =================
-
   @override
   Widget build(BuildContext context) {
     final profile = _selectedProfile;
@@ -415,7 +404,7 @@ class _HomePageState extends State<HomePage> {
         bottom: false,
         child: Column(
           children: [
-            _buildHeader(),
+            HomeHeader(status: _status, onlineDuration: _onlineDuration),
             Expanded(
               child: Center(
                 child: ConstrainedBox(
@@ -434,10 +423,13 @@ class _HomePageState extends State<HomePage> {
                       _buildAdvancedCard(),
                       const SizedBox(height: 20),
                       _buildActionRow(),
-                      _buildResultBanner(),
+                      ResultBanner(ok: _resultSuccess, message: _resultMessage),
                       const SizedBox(height: 16),
-                      _buildLogCard(),
-                      _buildFooter(),
+                      AuthLogCard(entries: _log, onClear: _clearLog),
+                      FooterActions(
+                        onRecharge: _openRecharge,
+                        onSupport: _showSupportInfo,
+                      ),
                     ],
                   ),
                 ),
@@ -449,116 +441,6 @@ class _HomePageState extends State<HomePage> {
     );
   }
 
-  Widget _buildHeader() {
-    final (String label, Color dotColor) = switch (_status) {
-      OnlineStatus.online => ('已认证', const Color(0xFF4ADE80)),
-      OnlineStatus.offline => ('未认证', const Color(0xFFFBBF24)),
-      OnlineStatus.unknown => ('状态未知', const Color(0xFFE2E8F0)),
-      null => ('未检测', const Color(0xFFE2E8F0)),
-    };
-    return Container(
-      width: double.infinity,
-      decoration: const ShapeDecoration(
-        gradient: kBrandGradient,
-        shape: AppShape.header,
-      ),
-      padding: const EdgeInsets.fromLTRB(24, 20, 24, 26),
-      child: Row(
-        children: [
-          Container(
-            width: 48,
-            height: 48,
-            decoration: ShapeDecoration(
-              color: kBrandInk.withValues(alpha: .14),
-              shape: AppShape.md,
-            ),
-            child: const Icon(Icons.wifi_rounded, color: kBrandInk, size: 26),
-          ),
-          const SizedBox(width: 14),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                const Text('GiWiFi 一键认证', style: AppTextStyle.titleXL),
-                const SizedBox(height: 3),
-                Text(
-                  '校园网终端 · 一键切换 · 极速认证',
-                  style: AppTextStyle.footnote.copyWith(color: kBrandInkSoft),
-                ),
-              ],
-            ),
-          ),
-          const SizedBox(width: 12),
-          Container(
-            padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
-            decoration: ShapeDecoration(
-              color: kBrandInk.withValues(alpha: .14),
-              shape: AppShape.pill,
-            ),
-            child: Row(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                Container(
-                  width: 8,
-                  height: 8,
-                  decoration: BoxDecoration(
-                    color: dotColor,
-                    shape: BoxShape.circle,
-                  ),
-                ),
-                const SizedBox(width: 6),
-                Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(label, style: AppTextStyle.footnoteEmphasized),
-                    if (_onlineDuration != null)
-                      Text(
-                        '已在线 $_onlineDuration',
-                        style: AppTextStyle.chip.copyWith(
-                          color: kBrandInkSoft,
-                        ),
-                      ),
-                  ],
-                ),
-              ],
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildSectionTitle(IconData icon, String title, String subtitle) {
-    final scheme = Theme.of(context).colorScheme;
-    return Row(
-      children: [
-        Container(
-          width: 36,
-          height: 36,
-          decoration: ShapeDecoration(
-            color: scheme.primary.withValues(alpha: .10),
-            shape: AppShape.sm,
-          ),
-          child: Icon(icon, size: 19, color: scheme.primary),
-        ),
-        const SizedBox(width: 11),
-        Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text(title, style: AppTextStyle.title),
-            const SizedBox(height: 1),
-            Text(
-              subtitle,
-              style: AppTextStyle.caption.copyWith(
-                color: scheme.onSurfaceVariant,
-              ),
-            ),
-          ],
-        ),
-      ],
-    );
-  }
-
   Widget _buildDeviceCard() {
     return Card(
       child: Padding(
@@ -566,7 +448,7 @@ class _HomePageState extends State<HomePage> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            _buildSectionTitle(Icons.devices_rounded, '认证设备', '决定占用哪个终端槽位'),
+            const SectionTitle(Icons.devices_rounded, '认证设备', '决定占用哪个终端槽位'),
             const SizedBox(height: 16),
             LayoutBuilder(
               builder: (context, constraints) {
@@ -577,66 +459,17 @@ class _HomePageState extends State<HomePage> {
                   runSpacing: spacing,
                   children: [
                     for (final p in DeviceProfile.presets)
-                      _buildDeviceTile(width, p, selected: _profileId == p.id),
+                      DeviceTile(
+                        width: width,
+                        profile: p,
+                        selected: _profileId == p.id,
+                        onSelect: (id) => setState(() => _profileId = id),
+                      ),
                   ],
                 );
               },
             ),
           ],
-        ),
-      ),
-    );
-  }
-
-  Widget _buildDeviceTile(
-    double width,
-    DeviceProfile profile, {
-    required bool selected,
-  }) {
-    final scheme = Theme.of(context).colorScheme;
-    final fg = selected ? scheme.onPrimary : scheme.onSurfaceVariant;
-    return SizedBox(
-      width: width,
-      child: Material(
-        color: selected
-            ? scheme.primary
-            : scheme.surfaceContainerHighest.withValues(alpha: .45),
-        animationDuration: const Duration(milliseconds: 160),
-        shape: AppShape.md,
-        child: InkWell(
-          customBorder: AppShape.md,
-          onTap: () => setState(() => _profileId = profile.id),
-          child: AnimatedContainer(
-            duration: const Duration(milliseconds: 160),
-            height: 86,
-            padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 12),
-            decoration: ShapeDecoration(
-              shape: RoundedSuperellipseBorder(
-                borderRadius: const BorderRadius.all(AppRadius.md),
-                side: BorderSide(
-                  color: selected
-                      ? scheme.primary
-                      : scheme.outlineVariant.withValues(alpha: .55),
-                  width: selected ? 1.6 : 1,
-                ),
-              ),
-            ),
-            child: Column(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                Icon(_iconFor(profile.id), size: 24, color: fg),
-                const SizedBox(height: 7),
-                Text(
-                  profile.label,
-                  maxLines: 1,
-                  overflow: TextOverflow.ellipsis,
-                  style: AppTextStyle.footnoteEmphasized.copyWith(
-                    color: selected ? scheme.onPrimary : scheme.onSurface,
-                  ),
-                ),
-              ],
-            ),
-          ),
         ),
       ),
     );
@@ -650,7 +483,7 @@ class _HomePageState extends State<HomePage> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            _buildSectionTitle(
+            const SectionTitle(
               Icons.person_outline_rounded,
               '账号信息',
               '仅保存在本机，不会上传',
@@ -721,7 +554,7 @@ class _HomePageState extends State<HomePage> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            _buildSectionTitle(
+            const SectionTitle(
               Icons.code_rounded,
               '自定义 User-Agent',
               '选择“自定义”设备后生效',
@@ -818,7 +651,14 @@ class _HomePageState extends State<HomePage> {
   Widget _buildActionRow() {
     return Row(
       children: [
-        Expanded(flex: 11, child: _buildPrimaryButton()),
+        Expanded(
+          flex: 11,
+          child: PrimaryAuthButton(
+            checking: _checking,
+            busy: _busy,
+            onPressed: _checking ? null : (_busy ? _cancelLogin : _doLogin),
+          ),
+        ),
         const SizedBox(width: 12),
         Expanded(
           flex: 8,
@@ -838,267 +678,6 @@ class _HomePageState extends State<HomePage> {
           ),
         ),
       ],
-    );
-  }
-
-  Widget _buildPrimaryButton() {
-    final scheme = Theme.of(context).colorScheme;
-    return ClipRSuperellipse(
-      borderRadius: const BorderRadius.all(AppRadius.lg),
-      child: DecoratedBox(
-        decoration: BoxDecoration(
-          gradient: _checking
-              ? LinearGradient(
-                  colors: [
-                    scheme.surfaceContainerHighest,
-                    scheme.surfaceContainerHighest,
-                  ],
-                )
-              : kBrandGradient,
-        ),
-        child: FilledButton(
-          onPressed: _checking ? null : (_busy ? _cancelLogin : _doLogin),
-          style: FilledButton.styleFrom(
-            backgroundColor: Colors.transparent,
-            disabledBackgroundColor: Colors.transparent,
-            foregroundColor: kBrandInk,
-            disabledForegroundColor:
-                _checking ? scheme.onSurfaceVariant : kBrandInk,
-            elevation: 0,
-            minimumSize: const Size.fromHeight(56),
-            shape: const RoundedSuperellipseBorder(),
-          ),
-          child: Row(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              if (_busy)
-                const SizedBox(
-                  width: 18,
-                  height: 18,
-                  child: CircularProgressIndicator(
-                    strokeWidth: 2,
-                    color: kBrandInk,
-                  ),
-                )
-              else
-                const Icon(Icons.login_rounded, size: 20),
-              const SizedBox(width: 8),
-              Text(_busy ? '停止认证' : '一键认证'),
-            ],
-          ),
-        ),
-      ),
-    );
-  }
-
-  Widget _buildResultBanner() {
-    final message = _resultMessage;
-    if (message == null) return const SizedBox.shrink();
-    final ok = _resultSuccess;
-    final isDark = Theme.of(context).brightness == Brightness.dark;
-    final bg = isDark
-        ? (ok ? const Color(0xFF14331F) : const Color(0xFF3A1B1E))
-        : (ok ? const Color(0xFFE8F8EF) : const Color(0xFFFDECEC));
-    final fg = isDark
-        ? (ok ? const Color(0xFF7BE3AB) : const Color(0xFFFFA6A0))
-        : (ok ? const Color(0xFF14794A) : const Color(0xFFB3261E));
-    return AnimatedSwitcher(
-      duration: const Duration(milliseconds: 220),
-      transitionBuilder: (child, animation) => FadeTransition(
-        opacity: animation,
-        child: SizeTransition(sizeFactor: animation, child: child),
-      ),
-      child: Container(
-        key: ValueKey<String>('$ok:$message'),
-        margin: const EdgeInsets.only(top: 16),
-        padding: const EdgeInsets.all(14),
-        decoration: ShapeDecoration(
-          color: bg,
-          shape: RoundedSuperellipseBorder(
-            borderRadius: const BorderRadius.all(AppRadius.md),
-            side: BorderSide(color: fg.withValues(alpha: .35)),
-          ),
-        ),
-        child: Row(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Icon(
-              ok ? Icons.check_circle_rounded : Icons.error_outline_rounded,
-              color: fg,
-              size: 20,
-            ),
-            const SizedBox(width: 10),
-            Expanded(
-              child: Text(
-                message,
-                style: AppTextStyle.callout.copyWith(color: fg),
-              ),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-
-  Widget _buildLogCard() {
-    final scheme = Theme.of(context).colorScheme;
-    return Card(
-      child: Padding(
-        padding: const EdgeInsets.all(18),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Row(
-              children: [
-                Icon(
-                  Icons.history_rounded,
-                  size: 20,
-                  color: scheme.onSurfaceVariant,
-                ),
-                const SizedBox(width: 8),
-                const Text('最近记录', style: AppTextStyle.title),
-                const Spacer(),
-                if (_log.isNotEmpty)
-                  TextButton(onPressed: _clearLog, child: const Text('清空')),
-              ],
-            ),
-            if (_log.isEmpty)
-              Padding(
-                padding: const EdgeInsets.symmetric(vertical: 14),
-                child: Center(
-                  child: Text(
-                    '暂无认证记录，完成一次认证后在此显示',
-                    style: AppTextStyle.footnote.copyWith(
-                      color: scheme.onSurfaceVariant,
-                    ),
-                  ),
-                ),
-              )
-            else
-              for (final e in _log.take(8))
-                Padding(
-                  padding: const EdgeInsets.only(top: 10),
-                  child: Row(
-                    children: [
-                      Container(
-                        width: 8,
-                        height: 8,
-                        decoration: BoxDecoration(
-                          color: e.success
-                              ? const Color(0xFF22C55E)
-                              : const Color(0xFFEF4444),
-                          shape: BoxShape.circle,
-                        ),
-                      ),
-                      const SizedBox(width: 8),
-                      Text(
-                        _fmtTime(e.time),
-                        style: AppTextStyle.caption.copyWith(
-                          color: scheme.onSurfaceVariant,
-                        ),
-                      ),
-                      const SizedBox(width: 8),
-                      Container(
-                        padding: const EdgeInsets.symmetric(
-                          horizontal: 8,
-                          vertical: 3,
-                        ),
-                        decoration: ShapeDecoration(
-                          color: scheme.surfaceContainerHighest,
-                          shape: AppShape.pill,
-                        ),
-                        child: Text(
-                          e.device,
-                          style: AppTextStyle.chip.copyWith(
-                            color: scheme.onSurfaceVariant,
-                          ),
-                        ),
-                      ),
-                      const SizedBox(width: 8),
-                      Expanded(
-                        child: Text(
-                          e.message,
-                          maxLines: 2,
-                          overflow: TextOverflow.ellipsis,
-                          style: AppTextStyle.footnote.copyWith(
-                            color: scheme.onSurfaceVariant,
-                            height: 1.35,
-                          ),
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-          ],
-        ),
-      ),
-    );
-  }
-
-  Widget _buildFooter() {
-    final scheme = Theme.of(context).colorScheme;
-    return Padding(
-      padding: const EdgeInsets.fromLTRB(6, 20, 6, 2),
-      child: Column(
-        children: [
-          Row(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              _buildFooterAction(
-                icon: Icons.account_balance_wallet_rounded,
-                label: 'WiFi 充值',
-                onTap: _openRecharge,
-              ),
-              const SizedBox(width: 10),
-              _buildFooterAction(
-                icon: Icons.support_agent_rounded,
-                label: '报修热线',
-                onTap: _showSupportInfo,
-              ),
-            ],
-          ),
-          const SizedBox(height: 10),
-          Row(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              Icon(
-                Icons.info_outline_rounded,
-                size: 14,
-                color: scheme.onSurfaceVariant.withValues(alpha: .7),
-              ),
-              const SizedBox(width: 6),
-              Flexible(
-                child: Text(
-                  '请先连接校园 WiFi（未认证状态）再使用。'
-                  '本工具仅用于自己已购套餐的账号。',
-                  textAlign: TextAlign.center,
-                  style: AppTextStyle.caption.copyWith(
-                    color: scheme.onSurfaceVariant.withValues(alpha: .8),
-                  ),
-                ),
-              ),
-            ],
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildFooterAction({
-    required IconData icon,
-    required String label,
-    required VoidCallback onTap,
-  }) {
-    final scheme = Theme.of(context).colorScheme;
-    return OutlinedButton.icon(
-      onPressed: onTap,
-      icon: Icon(icon, size: 15, color: scheme.primary),
-      label: Text(label),
-      style: OutlinedButton.styleFrom(
-        padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
-        minimumSize: Size.zero,
-        tapTargetSize: MaterialTapTargetSize.shrinkWrap,
-      ),
     );
   }
 
