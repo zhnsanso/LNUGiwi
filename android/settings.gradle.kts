@@ -21,17 +21,6 @@ pluginManagement {
     }
 }
 
-// 与 pluginManagement 同序：镜像优先，兜底官方源
-dependencyResolutionManagement {
-    repositoriesMode.set(RepositoriesMode.PREFER_SETTINGS)
-    repositories {
-        maven("https://maven.aliyun.com/repository/public")
-        maven("https://mirrors.cloud.tencent.com/nexus/repository/maven-public/")
-        google()
-        mavenCentral()
-    }
-}
-
 plugins {
     id("dev.flutter.flutter-plugin-loader") version "1.0.0"
     id("com.android.application") version "9.0.1" apply false
