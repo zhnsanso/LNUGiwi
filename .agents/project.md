@@ -30,7 +30,7 @@ GiWiFi 校园网认证工具（岭南师范学院），单一 Flutter 实现，�
 - GitHub Secrets：`ANDROID_KEYSTORE_BASE64` / `ANDROID_KEYSTORE_PASSWORD` / `ANDROID_KEY_ALIAS` / `ANDROID_KEY_PASSWORD`；builds.yml 构建前解码 jks 并生成 `android/key.properties`（gitignored），未配置时回退 debug 签名。
 - `android/app/build.gradle.kts` 按 key.properties 是否存在选择 release/debug 签名——本地 `flutter run --release` 依然可用。
 - **密钥丢失 = 永久失去更新已安装用户的能力**；备份目录务必保存到密码管理器/私有云。换签名 = 所有用户必须卸载重装（跨签名覆盖安装被 Android 拒绝）。
-- 验签方法：`keytool -printcert -jarfile GiWiFi-Android.apk`，比对上面指纹。
+- 验签方法（v2 签名方案，keytool -jarfile 看不到）：`uv run --with androguard python` 后 `APK('xx.apk').get_certificates_der_v2()` 取 DER 再算 SHA-256 比对指纹；本次干跑产物已实测一致。
 
 ## 历史结构（勿回退）
 
