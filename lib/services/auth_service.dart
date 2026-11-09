@@ -222,7 +222,7 @@ class AuthService {
             raw: result.raw,
           );
         }
-        final duration = await _fetchOnlineDuration(userAgent);
+        final duration = await fetchOnlineDuration(userAgent);
         final message = duration != null ? '认证成功，当前在线时长 $duration' : '认证成功';
         return LoginResult(
           success: true,
@@ -476,7 +476,7 @@ class AuthService {
       ).hasMatch(html);
 
   /// 认证成功后查询在线时长（HH:MM:SS）；离线或解析失败返回 null。
-  Future<String?> _fetchOnlineDuration(String userAgent) async {
+  Future<String?> fetchOnlineDuration(String userAgent) async {
     try {
       final html = await _getText('$_portalBase$kLogoutPath', userAgent);
       if (_hasPasswordInput(html)) return null;
@@ -779,8 +779,10 @@ class AuthService {
     await _probe(userAgent);
   }
 
-  /// 当前运行时生效的门户地址（诊断用）。
+  /// 当前运行时生效的门户地址 / AC 名 / 本机 IP（诊断与 UI 取用）。
   String get effectiveBaseUrl => _portalBase;
+  String get effectiveAcName => _portalAcName;
+  String? get effectiveClientIp => _clientIp;
 
   /// 可被 cancel() 打断的等待。
   Future<void> _sleep(Duration duration) async {

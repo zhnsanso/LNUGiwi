@@ -2,6 +2,7 @@ import 'dart:async';
 import 'dart:io';
 
 import 'package:flutter/material.dart';
+import 'package:url_launcher/url_launcher.dart';
 
 import '../models/device_profile.dart';
 import '../services/auth_service.dart';
@@ -38,6 +39,12 @@ class _HomePageState extends State<HomePage> {
   String? _resultMessage;
   bool _resultSuccess = false;
   OnlineStatus? _status;
+
+  /// 常驻显示的在线时长（HH:MM:SS），离线/未知时为 null。
+  String? _onlineDuration;
+
+  /// 动态发现到的本机 IP（充值链接参数；可能为 null）。
+  String? _lastClientIp;
 
   List<LogEntry> _log = <LogEntry>[];
   Timer? _keepAliveTimer;
@@ -172,6 +179,8 @@ class _HomePageState extends State<HomePage> {
         _resultMessage = result.message;
         _resultSuccess = result.success;
         _status = result.success ? OnlineStatus.online : OnlineStatus.offline;
+        _onlineDuration = result.success ? result.onlineDuration : null;
+        _lastClientIp = auth.effectiveClientIp ?? _lastClientIp;
       });
       await _appendLog(
         LogEntry(
@@ -286,7 +295,12 @@ class _HomePageState extends State<HomePage> {
     }
     setState(() => _checking = true);
     try {
-      final status = await _auth.checkOnline(profile.userAgent);
+      final auth = _auth;
+      final status = await auth.checkOnline(profile.userAgent);
+      String? duration;
+      if (status == OnlineStatus.online) {
+        duration = await auth.fetchOnlineDuration(profile.userAgent);
+      }
       if (!mounted) return;
       const map = <OnlineStatus, String>{
         OnlineStatus.online: '当前设备已在线',
@@ -297,6 +311,8 @@ class _HomePageState extends State<HomePage> {
         _resultMessage = map[status];
         _resultSuccess = status == OnlineStatus.online;
         _status = status;
+        _onlineDuration = duration;
+        _lastClientIp = auth.effectiveClientIp ?? _lastClientIp;
       });
     } catch (e) {
       if (!mounted) return;
@@ -327,8 +343,17 @@ class _HomePageState extends State<HomePage> {
     final profile = _selectedProfile;
     if (profile.userAgent.isEmpty) return;
     try {
-      final status = await _auth.checkOnline(profile.userAgent);
+      final auth = _auth;
+      final status = await auth.checkOnline(profile.userAgent);
+      if (status == OnlineStatus.online) {
+        final duration = await auth.fetchOnlineDuration(profile.userAgent);
+        if (mounted && duration != _onlineDuration) {
+          setState(() => _onlineDuration = duration);
+        }
+        return;
+      }
       if (status == OnlineStatus.offline && mounted) {
+        setState(() => _onlineDuration = null);
         await _doLogin();
       }
     } catch (_) {
@@ -460,9 +485,18 @@ class _HomePageState extends State<HomePage> {
                   ),
                 ),
                 const SizedBox(width: 6),
-                Text(
-                  label,
-                  style: AppTextStyle.footnoteEmphasized,
+                Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(label, style: AppTextStyle.footnoteEmphasized),
+                    if (_onlineDuration != null)
+                      Text(
+                        '已在线 $_onlineDuration',
+                        style: AppTextStyle.chip.copyWith(
+                          color: kBrandInkSoft,
+                        ),
+                      ),
+                  ],
                 ),
               ],
             ),
@@ -982,24 +1016,117 @@ class _HomePageState extends State<HomePage> {
     final scheme = Theme.of(context).colorScheme;
     return Padding(
       padding: const EdgeInsets.fromLTRB(6, 20, 6, 2),
-      child: Row(
-        mainAxisAlignment: MainAxisAlignment.center,
+      child: Column(
         children: [
-          Icon(
-            Icons.info_outline_rounded,
-            size: 14,
-            color: scheme.onSurfaceVariant.withValues(alpha: .7),
-          ),
-          const SizedBox(width: 6),
-          Flexible(
-            child: Text(
-              '请先连接校园 WiFi（未认证状态）再使用。'
-              '本工具仅用于自己已购套餐的账号。',
-              textAlign: TextAlign.center,
-              style: AppTextStyle.caption.copyWith(
-                color: scheme.onSurfaceVariant.withValues(alpha: .8),
+          Row(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              _buildFooterAction(
+                icon: Icons.account_balance_wallet_rounded,
+                label: 'WiFi 充值',
+                onTap: _openRecharge,
               ),
+              const SizedBox(width: 10),
+              _buildFooterAction(
+                icon: Icons.support_agent_rounded,
+                label: '报修热线',
+                onTap: _showSupportInfo,
+              ),
+            ],
+          ),
+          const SizedBox(height: 10),
+          Row(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              Icon(
+                Icons.info_outline_rounded,
+                size: 14,
+                color: scheme.onSurfaceVariant.withValues(alpha: .7),
+              ),
+              const SizedBox(width: 6),
+              Flexible(
+                child: Text(
+                  '请先连接校园 WiFi（未认证状态）再使用。'
+                  '本工具仅用于自己已购套餐的账号。',
+                  textAlign: TextAlign.center,
+                  style: AppTextStyle.caption.copyWith(
+                    color: scheme.onSurfaceVariant.withValues(alpha: .8),
+                  ),
+                ),
+              ),
+            ],
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildFooterAction({
+    required IconData icon,
+    required String label,
+    required VoidCallback onTap,
+  }) {
+    final scheme = Theme.of(context).colorScheme;
+    return OutlinedButton.icon(
+      onPressed: onTap,
+      icon: Icon(icon, size: 15, color: scheme.primary),
+      label: Text(label),
+      style: OutlinedButton.styleFrom(
+        padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
+        minimumSize: Size.zero,
+        tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+      ),
+    );
+  }
+
+  /// 门户自带的充值入口（登录页"WiFi充值"同款链接），
+  /// 参数用动态发现的 AC 名 / 本机 IP，未发现时退回设置值。
+  String get _rechargeUrl {
+    final acName = _acNameCtrl.text.trim().isNotEmpty
+        ? _acNameCtrl.text.trim()
+        : 'GiWiFi_lnsfHG';
+    final ip = _lastClientIp;
+    return 'http://lnsfv2.pc.gwifi.com.cn/Gishop/index.php/pay/prevcharge'
+        '?wa=${Uri.encodeQueryComponent(acName)}'
+        '${ip == null ? '' : '&ip=${Uri.encodeQueryComponent(ip)}'}';
+  }
+
+  Future<void> _openRecharge() async {
+    final url = Uri.parse(_rechargeUrl);
+    try {
+      final opened = await launchUrl(url, mode: LaunchMode.externalApplication);
+      if (!opened) _showSnack('未能打开浏览器，充值地址：$url');
+    } catch (_) {
+      _showSnack('未能打开浏览器，充值地址：$url');
+    }
+  }
+
+  Future<void> _showSupportInfo() async {
+    final scheme = Theme.of(context).colorScheme;
+    await showDialog<void>(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        shape: AppShape.card,
+        title: Row(
+          children: [
+            Icon(
+              Icons.support_agent_rounded,
+              size: 20,
+              color: scheme.onSurfaceVariant,
             ),
+            const SizedBox(width: 8),
+            const Text('报修与咨询', style: AppTextStyle.title),
+          ],
+        ),
+        content: const Text(
+          '公众网统一服务热线：18312680661（短号 666111）\n'
+          '公众网营业厅：岭南师范学院尚雅 C 对面',
+          style: AppTextStyle.calloutNormal,
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(ctx).pop(),
+            child: const Text('知道了'),
           ),
         ],
       ),
