@@ -5,7 +5,7 @@ import 'headless_server.dart';
 
 /// headless 版版本号；必须与 pubspec.yaml 的版本号（不含 build 号）一致，
 /// 由 test/headless_cli_test.dart 校验。
-const String kHeadlessVersion = '2.1.1';
+const String kHeadlessVersion = '2.2.0';
 
 /// `serve` 子命令的启动参数。
 class ServeOptions {

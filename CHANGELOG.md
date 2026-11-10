@@ -2,10 +2,13 @@
 
 本项目的显著变更记录。遵循 [Conventional Commits](https://www.conventionalcommits.org/zh-hans/) 提交规范，发布时手动汇总至此。
 
-## 未发布
+## v2.2.0 (2026-11-10)
 
-- **feat**: Linux headless 版（`giwifi-headless`）——无界面 Linux / 树莓派通过浏览器 WebUI 认证：终端槽位选择（电脑 / 安卓手机 / iPhone / iPad / 自定义 UA）、登录、注销、在线状态与时长查询；复用动态门户发现与劫持探测；凭据不落盘、无 watchdog
-- **ci**: `Builds` 新增 `build-headless` job，QEMU 容器交叉产出 linux-arm64 / x86_64 单文件 zip（含 systemd unit 模板）
+Linux headless 版本：树莓派等无界面 64 位 Linux 可通过浏览器 WebUI 完成校园网认证（终端槽位 / 登录 / 注销 / 在线状态），复用门户动态发现与劫持探测，凭据不落盘。Flutter 客户端（Android / Windows / macOS）行为不变。
+
+- **feat**: Linux headless 版（`giwifi-headless`）——新增 `serve` CLI 与内嵌中文单页 WebUI：终端槽位选择（电脑 / 安卓手机 / iPhone / iPad / 自定义 UA）、登录、注销、在线状态与时长查询；复用 `AuthService` 动态门户发现；换绑 / 已在线切换保持人工确认；无 watchdog
+- **build**: 新增 linux-arm64 与 linux-x86_64 单文件产物（含 systemd unit 模板与部署说明），凭据完全无状态
+- **ci**: `Builds` 新增 `build-headless` job（QEMU 容器交叉编译），`check` 格式检查扩展到 `bin/`
 
 ## v2.1.1 (2026-11-09)
 

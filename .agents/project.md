@@ -12,7 +12,7 @@ GiWiFi 校园网认证工具（岭南师范学院），单一 Flutter 实现，�
 - 版本号在 `pubspec.yaml`，格式 `X.Y.Z+日期NNN`（如 `2.0.0+2026110801`），build 号为日期式。
 - 发版 tag `vX.Y.Z` 必须与 pubspec 版本一致；tag 为轻量 tag，需按名推送（见 rules.md）。
 - CI 与本地钉同一 Flutter 版本 **3.47.9**（workflows 里 `flutter-version` 钉死）；升级 Flutter 时必须同步改 workflows 并在 Linux 上跑一轮 `dart format` + `flutter test`，避免格式化输出漂移导致 CI 变红。
-- 当前版本 **v2.1.0+2026110901**（2026-11-09）：动态发现 / 劫持探测在线检测 / 快速重试 / 充值入口 / 在线时长常驻 / 报修热线。
+- 当前版本 **v2.2.0+2026111001**（2026-11-10）：新增 Linux headless 版（浏览器 WebUI 认证，arm64/x86_64 单文件产物）。
 
 ## 门户协议与官方客户端情报（v2.1.0 认证重构的依据）
 
