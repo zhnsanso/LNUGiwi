@@ -159,6 +159,7 @@ jobs:
           docker run --rm \
             --platform ${{ matrix.platform }} \
             -e DART_VERSION -e DART_ARCH \
+            -e HOST_UID="$(id -u)" -e HOST_GID="$(id -g)" \
             -v "$PWD":/src -w /src \
             debian:bookworm-slim bash -c '
               set -euo pipefail
@@ -171,6 +172,8 @@ jobs:
               printf "%s" "{\"configVersion\":2,\"packages\":[{\"name\":\"giwifi_ua_switcher\",\"rootUri\":\"../\",\"packageUri\":\"lib/\",\"languageVersion\":\"3.5\"}]}" > .dart_tool/package_config.json
               /opt/dart-sdk/bin/dart compile exe bin/giwifi_headless.dart \
                 -o build/headless/giwifi-headless
+              # 容器以 root 运行，把挂载目录的新文件归还宿主用户，供后续打包步骤使用
+              chown -R "${HOST_UID}:${HOST_GID}" build .dart_tool
             '
 
       - name: Package headless archive
