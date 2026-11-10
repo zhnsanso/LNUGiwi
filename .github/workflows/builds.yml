@@ -129,9 +129,67 @@ jobs:
           name: artifact-windows
           path: build/GiWiFi-Windows-x64.zip
 
+  build-headless:
+    runs-on: ubuntu-24.04
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - arch: arm64
+            platform: linux/arm64
+            dart_arch: arm64
+          - arch: x86_64
+            platform: linux/amd64
+            dart_arch: x64
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v5
+
+      - name: Set up QEMU
+        if: matrix.arch == 'arm64'
+        uses: docker/setup-qemu-action@v3
+
+      # headless 版是纯 dart:io 代码，容器里只需 Dart SDK；
+      # 由于 bin 用 package: 导入，临时生成最小 package_config（无需 flutter pub get）。
+      - name: Build in ${{ matrix.arch }} container
+        env:
+          DART_VERSION: 3.10.9
+          DART_ARCH: ${{ matrix.dart_arch }}
+        run: |
+          docker run --rm \
+            --platform ${{ matrix.platform }} \
+            -e DART_VERSION -e DART_ARCH \
+            -v "$PWD":/src -w /src \
+            debian:bookworm-slim bash -c '
+              set -euo pipefail
+              apt-get update
+              apt-get install -y --no-install-recommends curl ca-certificates unzip
+              curl -fsSLo /tmp/dart-sdk.zip \
+                "https://storage.googleapis.com/dart-archive/channels/stable/release/${DART_VERSION}/sdk/dartsdk-linux-${DART_ARCH}-release.zip"
+              unzip -q /tmp/dart-sdk.zip -d /opt
+              mkdir -p .dart_tool build/headless
+              printf "%s" "{\"configVersion\":2,\"packages\":[{\"name\":\"giwifi_ua_switcher\",\"rootUri\":\"../\",\"packageUri\":\"lib/\",\"languageVersion\":\"3.5\"}]}" > .dart_tool/package_config.json
+              /opt/dart-sdk/bin/dart compile exe bin/giwifi_headless.dart \
+                -o build/headless/giwifi-headless
+            '
+
+      - name: Package headless tarball
+        run: |
+          set -euo pipefail
+          mkdir -p build/pkg
+          cp build/headless/giwifi-headless build/pkg/
+          cp deploy/giwifi-headless.service deploy/README-headless.md build/pkg/
+          tar -czf "build/GiWiFi-headless-linux-${{ matrix.arch }}.tar.gz" -C build/pkg .
+
+      - name: Upload headless artifact
+        uses: actions/upload-artifact@v6
+        with:
+          name: artifact-headless-${{ matrix.arch }}
+          path: build/GiWiFi-headless-linux-${{ matrix.arch }}.tar.gz
+
   release:
     if: startsWith(github.ref, 'refs/tags/v')
-    needs: [build-android, build-macos, build-windows]
+    needs: [build-android, build-macos, build-windows, build-headless]
     runs-on: ubuntu-24.04
     steps:
       - name: Download all build artifacts

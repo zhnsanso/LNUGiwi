@@ -13,6 +13,7 @@
 | Android | `GiWiFi-Android.apk` | 通用包，下载即装；正式签名（自 v2.1.1 起；v2.1.0 及更早为 debug 签名，跨签名升级需先卸载旧版） |
 | Windows x64 | `GiWiFi-Windows-x64.zip` | 解压后运行 `giwifi_ua_switcher.exe` |
 | macOS（Intel + Apple Silicon） | `GiWiFi-macOS-universal.dmg` | 通用二进制，打开后拖入 Applications 即完成安装 |
+| Linux headless（arm64 / x86_64） | `GiWiFi-headless-linux-arm64.tar.gz` / `GiWiFi-headless-linux-x86_64.tar.gz` | 树莓派等无界面设备：解压后运行 `giwifi-headless serve`，浏览器打开 WebUI |
 
 macOS 版发布包为同时支持 Intel 和 Apple Silicon 的 universal binary，由 GitHub Actions 的 `Builds` 工作流构建。
 
@@ -37,6 +38,12 @@ flutter build macos --release
 
 > 发布通道只覆盖 Android / macOS / Windows；iOS 因无签名证书不提供安装包，可自行从源码构建。
 
+Linux headless 版单独编译（`dart compile exe` 不支持交叉编译，需在目标架构上构建；CI 用对应架构容器完成）：
+
+```bash
+dart compile exe bin/giwifi_headless.dart -o build/giwifi-headless
+```
+
 > 自 v2.0.0 起项目回归单一 Flutter 实现，早期的 .NET Windows 轻量版（`windows-lite/`）已移除，可从 git 历史找回。此前使用轻量版的用户：Flutter 版读取同一个配置文件 `%APPDATA%\giwifi_ua_switcher\settings.json`，已保存的账号密码与设置会自动沿用，无需重新填写。
 
 ## 湖光校区设置
@@ -53,6 +60,23 @@ http://100.100.9.2/gportal/web/login?wlanacname=GiWiFi_lnsfHG
 ```
 
 登录页没有返回密码框时，程序会提示检查校园 Wi-Fi 连接、认证服务器和 AC 名称；不能仅凭此提示判断账号密码是否正确。
+
+## Linux / 树莓派（headless WebUI）
+
+无图形界面的 64 位 Linux（树莓派 3B+ / 4 / 5、Zero 2 W、x86 小主机或软路由等）可使用 headless 版，通过浏览器完成认证：
+
+```bash
+tar -xzf GiWiFi-headless-linux-arm64.tar.gz   # x86 设备改用 x86_64 包
+sudo install -m 0755 giwifi-headless /usr/local/bin/
+giwifi-headless serve
+```
+
+同一局域网内打开 `http://设备IP:8712`，选择终端槽位（电脑 / 安卓手机 / iPhone / iPad / 自定义 UA）、填写账号密码即可登录，也可查看在线状态与在线时长、注销当前设备。门户地址 / AC 名称 / 本机 IP 仍会自动发现。
+
+- 当前版本只提供手动操作：**没有自动重连守护，也没有配置文件**；凭据只存在于页面内存，刷新页面或重启进程后需重新输入。
+- 默认监听 `0.0.0.0:8712` 且无鉴权，仅建议在可信局域网使用；可用 `--token` 或环境变量 `GIWIFI_TOKEN` 启用访问令牌，用 `--port` 修改端口。
+- 开机自启：解压包内附 systemd unit（`giwifi-headless.service`）与部署说明 `README-headless.md`。
+- 仅支持 64 位系统（Dart 官方不提供 32 位 ARM SDK）。
 
 ## 功能
 
@@ -73,6 +97,7 @@ http://100.100.9.2/gportal/web/login?wlanacname=GiWiFi_lnsfHG
 - 工具不会将账号、密码或认证日志上传到本项目维护者的服务器；认证请求发送到界面配置的校园网认证服务器。
 - 在线检测与门户发现会向小米的公共 204 探测地址（`connect.rom.miui.com/generate_204`）发起一次**不含任何个人数据**的连通性请求；若被校园网 AC 劫持重定向，仅解析重定向地址中的门户参数。
 - 勾选“记住账号密码”时，会将凭据以**未加密明文**保存到本机配置文件（Windows 为 `%APPDATA%\giwifi_ua_switcher\settings.json`，其他平台为应用支持目录）。仅在个人设备上使用；取消勾选可关闭保存。请勿分享该配置文件或包含个人凭据的日志。
+- Linux headless 版不提供“记住密码”：凭据只存在于浏览器页面内存，提交后不做任何落盘（服务端也不保存）。
 - 本工具只应用于你获准使用的校园网账号，并遵守学校及网络运营方的规定。设备类型选择和认证行为可能受套餐、门户策略或校区配置限制。
 - 发现本次对话或测试中曾暴露的密码时，请及时更换，不要将真实账号密码写进 issue、截图或源码。
 

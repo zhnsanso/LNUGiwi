@@ -12,7 +12,7 @@ Read before making changes:
 
 ## Highest Priority Rules
 
-- Single Flutter implementation since v2.0.0 — do not reintroduce a C#/.NET copy; extend the Dart code.
+- Single Flutter implementation since v2.0.0 — do not reintroduce a C#/.NET copy; extend the Dart code. The Linux headless build (`bin/giwifi_headless.dart` + `lib/headless/`) is a second entry point of the same Dart code, not a second implementation — it reuses `AuthService`; never add a Python/Go/Node rewrite.
 - Crypto/form logic lives in two places that must stay in sync: `lib/common/aes_crypto.dart` and `tool/gen_test_vectors.py` (vectors baked into tests and selfcheck). Change one, update both, regenerate vectors.
 - Style tokens are mandatory: every corner comes from `lib/ui/shape.dart` (`AppShape`/`AppRadius`, superellipse only — no `ClipRRect`/`RoundedRectangleBorder`/`StadiumBorder`/`BorderRadius.circular`) and every text size/weight from `lib/ui/typography.dart` (`AppTextStyle`). `test/lint/style_tokens_test.dart` fails the build on violations elsewhere in `lib/`.
 - Widget tests must set `SettingsService.configDirOverride` to a temp dir, or they hit the real `%APPDATA%\giwifi_ua_switcher` on Windows.

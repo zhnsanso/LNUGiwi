@@ -1,0 +1,17 @@
+[Unit]
+Description=GiWiFi 校园网认证 WebUI（headless）
+Documentation=https://github.com/zhnsanso/LNUGiwi
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=simple
+ExecStart=/usr/local/bin/giwifi-headless serve --host 0.0.0.0 --port 8712
+# 建议启用访问令牌：取消注释并改成自己的随机令牌。
+# 用 Environment= 而不是 --token，令牌不会出现在 ps 的命令行里。
+# Environment=GIWIFI_TOKEN=请改成随机令牌
+Restart=on-failure
+RestartSec=5
+
+[Install]
+WantedBy=multi-user.target

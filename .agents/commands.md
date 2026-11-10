@@ -12,10 +12,19 @@ dart run tool/selfcheck.dart       # 独立自检，无需额外包
 
 推送前必跑 `flutter analyze` 与 `flutter test`——`check` workflow 对每次推送执行同样的检查（format / analyze / test），红了会被直接看见。
 
+## Linux headless 版
+
+```bash
+dart run bin/giwifi_headless.dart serve --host 127.0.0.1 --port 8712
+dart compile exe bin/giwifi_headless.dart -o build/giwifi-headless   # 需在目标架构上编译
+```
+
+仅 `serve` 一个子命令；参数见 `--help`。没有配置文件、不落盘凭据，测试覆盖在 `test/headless_server_test.dart` 与 `test/headless_cli_test.dart`。
+
 ## 格式化
 
 ```bash
-dart format lib test tool          # CI 用 --set-exit-if-changed 校验
+dart format lib test tool bin        # CI 用 --set-exit-if-changed 校验
 ```
 
 ## 金色截图（goldens）

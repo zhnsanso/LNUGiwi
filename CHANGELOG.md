@@ -2,6 +2,11 @@
 
 本项目的显著变更记录。遵循 [Conventional Commits](https://www.conventionalcommits.org/zh-hans/) 提交规范，发布时手动汇总至此。
 
+## 未发布
+
+- **feat**: Linux headless 版（`giwifi-headless`）——无界面 Linux / 树莓派通过浏览器 WebUI 认证：终端槽位选择（电脑 / 安卓手机 / iPhone / iPad / 自定义 UA）、登录、注销、在线状态与时长查询；复用动态门户发现与劫持探测；凭据不落盘、无 watchdog
+- **ci**: `Builds` 新增 `build-headless` job，QEMU 容器交叉产出 linux-arm64 / x86_64 单文件 tar.gz（含 systemd unit 模板）
+
 ## v2.1.1 (2026-11-09)
 
 签名与健壮性版本：**Android APK 首次采用正式签名**。macOS 精简为单一 dmg 产物；断线自动重连引入自适应检测间隔；UI 拆分为独立组件（对外行为不变）。
