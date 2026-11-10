@@ -29,7 +29,7 @@ GiWiFi 校园网认证工具（岭南师范学院），单一 Flutter 实现，�
 - 入口 `bin/giwifi_headless.dart`（仅 `serve` 子命令），实现位于 `lib/headless/`：`cli.dart`（参数解析 + 启动）+ `headless_server.dart`（纯 `dart:io` HttpServer）+ `webui_page.dart`（内嵌单页 HTML，零外部资源）。
 - 复用 `AuthService`（`discover: true`）与 `DeviceProfile`；**不可导入** `settings_service.dart`（依赖 path_provider，纯 Dart AOT 编译会失败）。凭据不落盘；无 watchdog / 自动重连（v2.1.1 首版范围，刻意不加）。
 - 换绑（resultCode=124）与已在线切换保持人工确认：WebUI 首轮不带 `confirm_rebind` / `confirm_switch`，用户确认后带 true 重新提交；服务端只在显式确认时让回调返回 true。
-- 构建：`Builds` 的 `build-headless` job 在对应架构的 dart-sdk 容器里 `dart compile exe`（arm64 走 QEMU），产物 `GiWiFi-headless-linux-{arm64,x86_64}.tar.gz`，内含二进制、systemd unit 与 `deploy/README-headless.md`。bin 使用 `package:` 导入但 CI 不跑 `flutter pub get`，workflow 临时写最小 `.dart_tool/package_config.json`。
+- 构建：`Builds` 的 `build-headless` job 在对应架构的 dart-sdk 容器里 `dart compile exe`（arm64 走 QEMU），产物 `GiWiFi-headless-linux-{arm64,x86_64}.zip`，内含二进制、systemd unit 与 `deploy/README-headless.md`。bin 使用 `package:` 导入但 CI 不跑 `flutter pub get`，workflow 临时写最小 `.dart_tool/package_config.json`。
 - `kHeadlessVersion`（`lib/headless/cli.dart`）必须与 pubspec 版本号一致，`test/headless_cli_test.dart` 强制校验。
 
 ## Android 正式签名（v2.1.1 起）

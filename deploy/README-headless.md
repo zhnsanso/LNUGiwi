@@ -7,7 +7,7 @@
 ## 运行
 
 ```bash
-tar -xzf GiWiFi-headless-linux-arm64.tar.gz   # x86 设备换成 x86_64
+unzip GiWiFi-headless-linux-arm64.zip   # x86 设备换成 x86_64
 sudo install -m 0755 giwifi-headless /usr/local/bin/
 giwifi-headless serve
 ```

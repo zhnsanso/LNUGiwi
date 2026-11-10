@@ -5,7 +5,7 @@
 ## 未发布
 
 - **feat**: Linux headless 版（`giwifi-headless`）——无界面 Linux / 树莓派通过浏览器 WebUI 认证：终端槽位选择（电脑 / 安卓手机 / iPhone / iPad / 自定义 UA）、登录、注销、在线状态与时长查询；复用动态门户发现与劫持探测；凭据不落盘、无 watchdog
-- **ci**: `Builds` 新增 `build-headless` job，QEMU 容器交叉产出 linux-arm64 / x86_64 单文件 tar.gz（含 systemd unit 模板）
+- **ci**: `Builds` 新增 `build-headless` job，QEMU 容器交叉产出 linux-arm64 / x86_64 单文件 zip（含 systemd unit 模板）
 
 ## v2.1.1 (2026-11-09)
 

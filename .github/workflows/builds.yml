@@ -173,19 +173,21 @@ jobs:
                 -o build/headless/giwifi-headless
             '
 
-      - name: Package headless tarball
+      - name: Package headless archive
         run: |
           set -euo pipefail
           mkdir -p build/pkg
           cp build/headless/giwifi-headless build/pkg/
           cp deploy/giwifi-headless.service deploy/README-headless.md build/pkg/
-          tar -czf "build/GiWiFi-headless-linux-${{ matrix.arch }}.tar.gz" -C build/pkg .
+          cd build/pkg
+          python3 -m zipfile -c "../GiWiFi-headless-linux-${{ matrix.arch }}.zip" \
+            giwifi-headless giwifi-headless.service README-headless.md
 
       - name: Upload headless artifact
         uses: actions/upload-artifact@v6
         with:
           name: artifact-headless-${{ matrix.arch }}
-          path: build/GiWiFi-headless-linux-${{ matrix.arch }}.tar.gz
+          path: build/GiWiFi-headless-linux-${{ matrix.arch }}.zip
 
   release:
     if: startsWith(github.ref, 'refs/tags/v')

@@ -13,7 +13,7 @@
 | Android | `GiWiFi-Android.apk` | 通用包，下载即装；正式签名（自 v2.1.1 起；v2.1.0 及更早为 debug 签名，跨签名升级需先卸载旧版） |
 | Windows x64 | `GiWiFi-Windows-x64.zip` | 解压后运行 `giwifi_ua_switcher.exe` |
 | macOS（Intel + Apple Silicon） | `GiWiFi-macOS-universal.dmg` | 通用二进制，打开后拖入 Applications 即完成安装 |
-| Linux headless（arm64 / x86_64） | `GiWiFi-headless-linux-arm64.tar.gz` / `GiWiFi-headless-linux-x86_64.tar.gz` | 树莓派等无界面设备：解压后运行 `giwifi-headless serve`，浏览器打开 WebUI |
+| Linux headless（arm64 / x86_64） | `GiWiFi-headless-linux-arm64.zip` / `GiWiFi-headless-linux-x86_64.zip` | 树莓派等无界面设备：解压后运行 `giwifi-headless serve`，浏览器打开 WebUI |
 
 macOS 版发布包为同时支持 Intel 和 Apple Silicon 的 universal binary，由 GitHub Actions 的 `Builds` 工作流构建。
 
@@ -66,7 +66,7 @@ http://100.100.9.2/gportal/web/login?wlanacname=GiWiFi_lnsfHG
 无图形界面的 64 位 Linux（树莓派 3B+ / 4 / 5、Zero 2 W、x86 小主机或软路由等）可使用 headless 版，通过浏览器完成认证：
 
 ```bash
-tar -xzf GiWiFi-headless-linux-arm64.tar.gz   # x86 设备改用 x86_64 包
+unzip GiWiFi-headless-linux-arm64.zip   # x86 设备改用 x86_64 包
 sudo install -m 0755 giwifi-headless /usr/local/bin/
 giwifi-headless serve
 ```
